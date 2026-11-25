@@ -1,0 +1,3233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pulau Aksara: Petualangan Menulis &amp; Media Web</title>
+
+  <!-- Google Fonts: Fredoka untuk judul ceria & Nunito untuk keterbacaan anak SD -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Fredoka', 'cursive', 'sans-serif'],
+            body: ['Nunito', 'sans-serif'],
+          },
+          animation: {
+            'float-slow': 'floatSlow 3.8s ease-in-out infinite',
+            'pop-in': 'popIn 0.32s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+            'wiggle': 'wiggle 0.35s ease-in-out',
+          },
+          keyframes: {
+            floatSlow: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-7px)' },
+            },
+            popIn: {
+              '0%': { opacity: '0', transform: 'scale(0.92)' },
+              '100%': { opacity: '1', transform: 'scale(1)' },
+            },
+            wiggle: {
+              '0%, 100%': { transform: 'translateX(0)' },
+              '25%': { transform: 'translateX(-5px)' },
+              '75%': { transform: 'translateX(5px)' },
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Gaya Dasar & Tipografi Ramah Siswa SD */
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: linear-gradient(180deg, #e0f2fe 0%, #ecfdf5 52%, #fefce8 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4, .font-game {
+      font-family: 'Fredoka', cursive, sans-serif;
+    }
+
+    /* Tombol 3D Taktil ala Game Edukasi */
+    .btn-game {
+      transition: transform 0.14s ease, filter 0.14s ease, border-bottom-width 0.14s ease;
+      border-bottom-width: 4px;
+      user-select: none;
+    }
+    .btn-game:hover:not(:disabled) {
+      transform: translateY(-2px);
+      filter: brightness(1.03);
+    }
+    .btn-game:active:not(:disabled) {
+      transform: translateY(2px);
+      border-bottom-width: 1px;
+    }
+
+    /* Flip Card 3D Anti-Error untuk Zona 1 */
+    .flip-card {
+      perspective: 1100px;
+      cursor: pointer;
+      min-height: 235px;
+    }
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 235px;
+      transition: transform 0.65s cubic-bezier(0.4, 0.2, 0.2, 1);
+      transform-style: preserve-3d;
+    }
+    .flip-card.flipped .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+    .flip-card-front,
+    .flip-card-back {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border-radius: 1.5rem;
+    }
+    .flip-card-front {
+      z-index: 2;
+      pointer-events: auto;
+    }
+    .flip-card.flipped .flip-card-front {
+      pointer-events: none;
+    }
+    .flip-card-back {
+      transform: rotateY(180deg);
+      z-index: 1;
+      pointer-events: none;
+    }
+    .flip-card.flipped .flip-card-back {
+      z-index: 3;
+      pointer-events: auto;
+    }
+
+    /* Pola Latar Pulau Ceria */
+    .bg-island-dots {
+      background-image: radial-gradient(#0ea5e91f 2px, transparent 2px), radial-gradient(#f59e0b1f 2px, transparent 2px);
+      background-size: 38px 38px;
+      background-position: 0 0, 19px 19px;
+    }
+
+    /* Kanvas Konfeti */
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* Pengaturan Cetak (Print) */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      .printable-area,
+      .printable-area * {
+        visibility: visible;
+      }
+      .printable-area {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 24px !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-island-dots text-slate-800 selection:bg-amber-200 selection:text-amber-950">
+
+  <!-- Kanvas Animasi Konfeti Selebrasi -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Kontainer Notifikasi Toast -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full px-4 pointer-events-none"></div>
+
+  <!-- ===================================================================== -->
+  <!-- HEADER GAMIFIKASI & NAVIGASI 5 ZONA PETUALANGAN                       -->
+  <!-- ===================================================================== -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-4 border-sky-200 shadow-sm no-print">
+    <div class="max-w-6xl mx-auto px-3 sm:px-6 py-2.5">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+
+        <!-- Logo & Kembali ke Peta -->
+        <button type="button" onclick="navigateTo('home')" class="flex items-center gap-2.5 text-left group focus:outline-none">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 via-orange-400 to-rose-400 flex items-center justify-center text-white text-2xl shadow-md group-hover:scale-105 transition-transform">
+            🏝️
+          </div>
+          <div>
+            <h1 class="text-lg sm:text-xl font-bold text-sky-700 leading-tight tracking-wide">Pulau Aksara</h1>
+            <p class="text-[11px] sm:text-xs font-extrabold text-amber-600">Petualangan Menulis &amp; Media Web</p>
+          </div>
+        </button>
+
+        <!-- Panel Profil Siswa, Bintang, Gelar, Info Guru, & Suara -->
+        <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+
+          <!-- Kartu Profil Siswa (Klik untuk ubah Nama & Avatar) -->
+          <button type="button" onclick="openProfileModal()" title="Klik untuk ganti Nama & Avatar" class="flex items-center gap-2 bg-sky-50 hover:bg-sky-100 border-2 border-sky-200 rounded-2xl px-2.5 py-1.5 transition cursor-pointer">
+            <span id="header-avatar" class="text-2xl leading-none">🚀</span>
+            <div class="text-left">
+              <div class="flex items-center gap-1">
+                <span id="header-name" class="text-xs sm:text-sm font-extrabold text-slate-800 max-w-[95px] sm:max-w-[130px] truncate">Petualang Cilik</span>
+                <span class="text-[11px] text-sky-600 font-black">✎</span>
+              </div>
+              <span id="header-rank" class="block text-[10px] sm:text-[11px] font-extrabold text-emerald-600">🌱 Penjelajah Pemula</span>
+            </div>
+          </button>
+
+          <!-- Penghitung Bintang -->
+          <div class="flex items-center gap-1.5 bg-amber-100 border-2 border-amber-300 rounded-2xl px-3 py-1.5 shadow-inner">
+            <span class="text-lg sm:text-xl animate-pulse">⭐</span>
+            <div>
+              <span id="header-stars" class="text-sm sm:text-base font-black text-amber-800">0</span>
+              <span class="text-[10px] font-bold text-amber-700 hidden sm:inline">Bintang</span>
+            </div>
+          </div>
+
+          <!-- Tombol Info Guru (PGSD) -->
+          <button type="button" onclick="openTeacherModal()" class="btn-game bg-indigo-500 hover:bg-indigo-600 border-indigo-700 text-white text-xs sm:text-sm font-bold px-3 py-2 rounded-2xl flex items-center gap-1.5 shadow-sm">
+            <span>👩‍🏫</span>
+            <span class="hidden md:inline">Info Guru (PGSD)</span>
+            <span class="md:hidden">PGSD</span>
+          </button>
+
+          <!-- Tombol Mute / Unmute Suara -->
+          <button type="button" id="sound-toggle-btn" onclick="toggleSound()" aria-label="Atur Suara" title="Matikan / Nyalakan Suara" class="btn-game bg-emerald-500 hover:bg-emerald-600 border-emerald-700 text-white text-sm font-bold p-2 sm:px-3 sm:py-2 rounded-2xl flex items-center gap-1 shadow-sm">
+            <span id="sound-icon">🔊</span>
+            <span id="sound-label" class="hidden lg:inline text-xs">Suara Aktif</span>
+          </button>
+
+        </div>
+      </div>
+
+      <!-- Bilah Progres Keseluruhan & Navigasi 5 Tab Zona Utama -->
+      <div class="mt-2.5 pt-2 border-t border-sky-100 flex flex-col lg:flex-row lg:items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 flex-1">
+          <span class="text-xs font-extrabold text-slate-600 whitespace-nowrap">Progres Pulau:</span>
+          <div class="w-full max-w-xs bg-slate-200 rounded-full h-3.5 overflow-hidden p-0.5 border border-slate-300">
+            <div id="overall-progress-bar" class="bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+          <span id="overall-progress-text" class="text-xs font-black text-sky-700">0%</span>
+        </div>
+
+        <nav class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0">
+          <button type="button" onclick="navigateTo('home')" data-nav="home" class="nav-pill px-2.5 py-1.5 rounded-xl text-xs font-extrabold bg-sky-600 text-white transition whitespace-nowrap">🗺️ Peta</button>
+          <button type="button" onclick="navigateTo('zone1')" data-nav="zone1" class="nav-pill px-2.5 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-700 hover:bg-sky-100 transition whitespace-nowrap">🏝️ 1. Web Pintar</button>
+          <button type="button" onclick="navigateTo('zone2')" data-nav="zone2" class="nav-pill px-2.5 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-700 hover:bg-amber-100 transition whitespace-nowrap">🎨 2. Bengkel Imajinasi</button>
+          <button type="button" onclick="navigateTo('zone3')" data-nav="zone3" class="nav-pill px-2.5 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-700 hover:bg-emerald-100 transition whitespace-nowrap">🌸 3. Taman Sastra</button>
+          <button type="button" onclick="navigateTo('zone4')" data-nav="zone4" class="nav-pill px-2.5 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-700 hover:bg-purple-100 transition whitespace-nowrap">🏆 4. Arena Tantangan</button>
+          <button type="button" onclick="navigateTo('zone5')" data-nav="zone5" class="nav-pill px-2.5 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-700 hover:bg-rose-100 transition whitespace-nowrap">🔎 Misi Detektif</button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- KONTEN UTAMA APLIKASI                                                 -->
+  <!-- ===================================================================== -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+    <!-- =================================================================== -->
+    <!-- BERANDA: PETA PETUALANGAN PULAU AKSARA                              -->
+    <!-- =================================================================== -->
+    <section id="view-home" class="space-y-8 animate-pop-in">
+      <!-- Banner Sambutan -->
+      <div class="relative overflow-hidden bg-gradient-to-r from-sky-500 via-cyan-500 to-teal-500 rounded-3xl p-6 sm:p-8 text-white shadow-xl border-b-8 border-sky-700">
+        <svg class="absolute right-0 bottom-0 w-48 sm:w-64 opacity-25 pointer-events-none" viewBox="0 0 200 120" fill="none">
+          <circle cx="150" cy="30" r="22" fill="#FDE047" />
+          <path d="M20 120 C50 60, 140 60, 190 120 Z" fill="#86EFAC" />
+          <path d="M95 75 Q90 45 105 30" stroke="#78350F" stroke-width="6" stroke-linecap="round"/>
+          <path d="M105 30 Q80 20 70 35 M105 30 Q130 20 140 35 M105 30 Q105 5 90 12" stroke="#15803D" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+
+        <div class="relative z-10 max-w-2xl">
+          <span class="inline-block bg-white/20 backdrop-blur-sm text-white text-xs sm:text-sm font-extrabold px-3.5 py-1 rounded-full mb-3">
+            ✨ Media Pembelajaran Interaktif Bahasa Indonesia SD Kelas 4–6
+          </span>
+          <h2 class="text-2xl sm:text-4xl font-bold leading-tight mb-2">
+            Halo, <span id="welcome-student-name" class="text-amber-200 underline decoration-wavy">Petualang Cilik</span>! Siap Menjelajahi Pulau Aksara?
+          </h2>
+          <p class="text-sm sm:text-base text-sky-50 font-semibold leading-relaxed mb-5">
+            Kumpulkan bintang ⭐ di setiap zona dengan mempelajari <strong>Media Pembelajaran Web</strong>, merangkai cerita di <strong>Bengkel Imajinasi</strong>, berkarya di <strong>Taman Sastra</strong>, menaklukkan <strong>Arena Tantangan</strong>, dan memecahkan misteri di <strong>Detektif Kata Ajaib</strong>!
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <button type="button" onclick="navigateTo('zone1')" class="btn-game bg-amber-400 hover:bg-amber-300 border-amber-600 text-amber-950 font-extrabold px-5 py-3 rounded-2xl text-sm sm:text-base flex items-center gap-2 shadow-lg">
+              <span>🚀 Mulai Petualangan (Zona 1)</span>
+            </button>
+            <button type="button" onclick="openProfileModal()" class="btn-game bg-white/20 hover:bg-white/30 border-white/40 text-white font-bold px-4 py-3 rounded-2xl text-sm flex items-center gap-2">
+              <span>🎨 Ubah Nama &amp; Avatar</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Peta 5 Zona -->
+      <div class="text-center">
+        <h3 class="text-2xl sm:text-3xl font-bold text-slate-800">🗺️ Peta 5 Zona Petualangan</h3>
+        <p class="text-sm sm:text-base text-slate-600 font-semibold mt-1">Pilih zona tujuanmu di bawah ini untuk bermain sambil belajar!</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Kartu Zona 1 -->
+        <div onclick="navigateTo('zone1')" class="group cursor-pointer bg-white rounded-3xl p-5 border-4 border-sky-200 hover:border-sky-400 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div class="flex items-start justify-between gap-3">
+            <div class="w-14 h-14 rounded-2xl bg-sky-100 border-2 border-sky-300 flex items-center justify-center text-3xl animate-float-slow">
+              🏝️
+            </div>
+            <span id="badge-zone1" class="text-xs font-extrabold px-3 py-1 rounded-full bg-sky-100 text-sky-700">+40 ⭐</span>
+          </div>
+          <h4 class="text-xl font-bold text-sky-700 mt-3">1. Pulau Media Web Pintar</h4>
+          <p class="text-xs font-extrabold text-sky-500 uppercase tracking-wider mt-0.5">Media Pembelajaran Web</p>
+          <p class="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
+            Balik 4 kartu materi web edukasi &amp; susun urutan 5 bagian halaman web di mini-game <strong>"Rakit Halaman Web Edukasi"</strong>.
+          </p>
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-400">🃏 4 Kartu + Susun Web</span>
+            <span class="text-xs font-extrabold text-sky-600 group-hover:translate-x-1 transition-transform">Masuk →</span>
+          </div>
+        </div>
+
+        <!-- Kartu Zona 2 -->
+        <div onclick="navigateTo('zone2')" class="group cursor-pointer bg-white rounded-3xl p-5 border-4 border-amber-200 hover:border-amber-400 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div class="flex items-start justify-between gap-3">
+            <div class="w-14 h-14 rounded-2xl bg-amber-100 border-2 border-amber-300 flex items-center justify-center text-3xl animate-float-slow">
+              🎨
+            </div>
+            <span id="badge-zone2" class="text-xs font-extrabold px-3 py-1 rounded-full bg-amber-100 text-amber-700">+35 ⭐</span>
+          </div>
+          <h4 class="text-xl font-bold text-amber-700 mt-3">2. Bengkel Imajinasi</h4>
+          <p class="text-xs font-extrabold text-amber-500 uppercase tracking-wider mt-0.5">Menulis Kreatif &amp; ADIKSIMBA</p>
+          <p class="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
+            Putar <strong>Mesin Ide Cerita</strong>, pelajari <strong>ADIKSIMBA</strong>, sisipkan <strong>Kosakata Ajaib</strong>, dan cetak <strong>Kartu Buku Cerita</strong>!
+          </p>
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-400">🎲 Spinner + Studio Cerita</span>
+            <span class="text-xs font-extrabold text-amber-600 group-hover:translate-x-1 transition-transform">Masuk →</span>
+          </div>
+        </div>
+
+        <!-- Kartu Zona 3 -->
+        <div onclick="navigateTo('zone3')" class="group cursor-pointer bg-white rounded-3xl p-5 border-4 border-emerald-200 hover:border-emerald-400 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div class="flex items-start justify-between gap-3">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-100 border-2 border-emerald-300 flex items-center justify-center text-3xl animate-float-slow">
+              🌸
+            </div>
+            <span id="badge-zone3" class="text-xs font-extrabold px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">+40 ⭐</span>
+          </div>
+          <h4 class="text-xl font-bold text-emerald-700 mt-3">3. Taman Sastra Ceria</h4>
+          <p class="text-xs font-extrabold text-emerald-500 uppercase tracking-wider mt-0.5">Pantun &amp; Puisi Anak</p>
+          <p class="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
+            Pecahkan 3 <strong>Teka-Teki Sajak Pantun</strong>, uji rimamu dengan <strong>Cek Rima Otomatis</strong>, dan buat <strong>Poster Sastra</strong>!
+          </p>
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-400">🔍 Cek Rima + Poster</span>
+            <span class="text-xs font-extrabold text-emerald-600 group-hover:translate-x-1 transition-transform">Masuk →</span>
+          </div>
+        </div>
+
+        <!-- Kartu Zona 4 -->
+        <div onclick="navigateTo('zone4')" class="group cursor-pointer bg-white rounded-3xl p-5 border-4 border-purple-200 hover:border-purple-400 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div class="flex items-start justify-between gap-3">
+            <div class="w-14 h-14 rounded-2xl bg-purple-100 border-2 border-purple-300 flex items-center justify-center text-3xl animate-float-slow">
+              🏆
+            </div>
+            <span id="badge-zone4" class="text-xs font-extrabold px-3 py-1 rounded-full bg-purple-100 text-purple-700">+100 ⭐</span>
+          </div>
+          <h4 class="text-xl font-bold text-purple-700 mt-3">4. Arena Tantangan Bintang</h4>
+          <p class="text-xs font-extrabold text-purple-500 uppercase tracking-wider mt-0.5">Kuis Evaluasi 10 Soal</p>
+          <p class="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
+            Uji kemampuan menulis kreatif &amp; sastra lewat 10 soal pilihan ganda dan raih <strong>Sertifikat Kelulusan Digital</strong>!
+          </p>
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-400">📜 Sertifikat Digital</span>
+            <span class="text-xs font-extrabold text-purple-600 group-hover:translate-x-1 transition-transform">Masuk →</span>
+          </div>
+        </div>
+
+        <!-- Kartu Zona 5: Detektif Kata Ajaib -->
+        <div onclick="navigateTo('zone5')" class="group cursor-pointer bg-white rounded-3xl p-5 border-4 border-rose-200 hover:border-rose-400 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 md:col-span-2 lg:col-span-2">
+          <div class="flex items-start justify-between gap-3">
+            <div class="w-14 h-14 rounded-2xl bg-rose-100 border-2 border-rose-300 flex items-center justify-center text-3xl animate-float-slow">
+              🔎
+            </div>
+            <span id="badge-zone5" class="text-xs font-extrabold px-3 py-1 rounded-full bg-rose-100 text-rose-700">12 Kasus Rahasia ⭐</span>
+          </div>
+          <h4 class="text-xl font-bold text-rose-700 mt-3">5. Misi Detektif Kata Ajaib</h4>
+          <p class="text-xs font-extrabold text-rose-500 uppercase tracking-wider mt-0.5">Permainan Misi Teka-Teki Bahasa</p>
+          <p class="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
+            Jadilah detektif cilik! Pecahkan 4 misi rahasia (<em>Siapa Aku?</em>, <em>Susun Huruf Rahasia</em>, <em>Cari Kata Tersembunyi</em> di Papan Sandi 9×9, dan <em>Susun Kalimat Ajaib</em>) untuk meraih <strong>Lencana Kepala Detektif</strong>!
+          </p>
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-400">🕵️ 4 Misi • 12 Kasus • Lencana Detektif</span>
+            <span class="text-xs font-extrabold text-rose-600 group-hover:translate-x-1 transition-transform">Mulai Misi Rahasia →</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ZONA 1: PULAU MEDIA WEB PINTAR                                      -->
+    <!-- =================================================================== -->
+    <section id="view-zone1" class="hidden space-y-8 animate-pop-in">
+      <!-- Header Zona 1 -->
+      <div class="bg-gradient-to-r from-sky-500 to-blue-600 rounded-3xl p-6 text-white shadow-lg border-b-8 border-blue-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <span class="bg-white/20 text-xs font-extrabold px-3 py-1 rounded-full">ZONA 1 • MEDIA PEMBELAJARAN WEB</span>
+          <h2 class="text-2xl sm:text-3xl font-bold mt-2">🏝️ Pulau Media Web Pintar</h2>
+          <p class="text-sky-100 text-sm sm:text-base font-semibold mt-1">Pelajari dunia website belajar lewat 4 kartu interaktif, lalu susun komponen web dengan tepat!</p>
+        </div>
+        <button type="button" onclick="navigateTo('home')" class="btn-game bg-white text-sky-700 border-sky-200 font-extrabold px-4 py-2 rounded-2xl text-sm shrink-0">
+          ← Kembali ke Peta
+        </button>
+      </div>
+
+      <!-- BAGIAN A: 4 Kartu Materi Interaktif (Flip Cards) -->
+      <div class="bg-white rounded-3xl p-5 sm:p-7 border-4 border-sky-200 shadow-md space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 class="text-xl sm:text-2xl font-bold text-sky-800">🃏 Bagian A: 4 Kartu Materi Interaktif (Flip Cards)</h3>
+            <p class="text-xs sm:text-sm text-slate-600">Klik setiap kartu untuk membaliknya! Setiap kartu baru yang dibaca memberi <strong>+5 ⭐</strong>.</p>
+          </div>
+          <span id="flip-cards-counter" class="text-xs sm:text-sm font-extrabold bg-sky-100 text-sky-800 px-3.5 py-1.5 rounded-xl border border-sky-300">
+            📖 Progres: 0 / 4 Kartu
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Kartu 1 -->
+          <div id="flip-card-0" onclick="toggleFlipCard(0)" class="flip-card">
+            <div class="flip-card-inner">
+              <div class="flip-card-front bg-gradient-to-br from-sky-400 to-blue-600 text-white p-5 flex flex-col items-center justify-center text-center shadow-md">
+                <span id="flip-status-0" class="absolute top-3 right-3 text-[11px] font-extrabold bg-amber-300 text-amber-950 px-2.5 py-0.5 rounded-full">+5 ⭐</span>
+                <span class="text-4xl mb-2.5">🌐</span>
+                <h4 class="text-base sm:text-lg font-bold leading-snug">Kartu 1:<br/>Apa itu Media Pembelajaran Web?</h4>
+                <span class="text-[11px] bg-white/20 px-3 py-1 rounded-full mt-3 font-bold">Klik untuk balik ↻</span>
+              </div>
+              <div class="flip-card-back bg-sky-50 border-4 border-sky-400 p-4 flex flex-col justify-between text-center shadow-inner">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-extrabold text-sky-700">Kartu 1</span>
+                  <span class="text-[11px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Sudah Dibaca ✅</span>
+                </div>
+                <p class="text-xs sm:text-sm text-slate-700 leading-relaxed font-semibold my-auto">
+                  Media belajar digital yang dibuka melalui <strong>browser internet</strong> (HP, tablet, atau komputer) berisi bacaan, gambar berwarna, suara, dan kuis interaktif!
+                </p>
+                <span class="text-[11px] font-bold text-sky-600">Klik lagi untuk menutup ↺</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kartu 2 -->
+          <div id="flip-card-1" onclick="toggleFlipCard(1)" class="flip-card">
+            <div class="flip-card-inner">
+              <div class="flip-card-front bg-gradient-to-br from-amber-400 to-orange-500 text-white p-5 flex flex-col items-center justify-center text-center shadow-md">
+                <span id="flip-status-1" class="absolute top-3 right-3 text-[11px] font-extrabold bg-white text-amber-900 px-2.5 py-0.5 rounded-full">+5 ⭐</span>
+                <span class="text-4xl mb-2.5">🚀</span>
+                <h4 class="text-base sm:text-lg font-bold leading-snug">Kartu 2:<br/>Mengapa Belajar Lewat Web Itu Seru?</h4>
+                <span class="text-[11px] bg-white/20 px-3 py-1 rounded-full mt-3 font-bold">Klik untuk balik ↻</span>
+              </div>
+              <div class="flip-card-back bg-amber-50 border-4 border-amber-400 p-4 flex flex-col justify-between text-center shadow-inner">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-extrabold text-amber-700">Kartu 2</span>
+                  <span class="text-[11px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Sudah Dibaca ✅</span>
+                </div>
+                <p class="text-xs sm:text-sm text-slate-700 leading-relaxed font-semibold my-auto">
+                  Bisa diakses <strong>kapan saja dan di mana saja</strong>, ada animasi, tombol permainan, efek suara ceria, serta langsung mengetahui skor jawaban saat berlatih!
+                </p>
+                <span class="text-[11px] font-bold text-amber-700">Klik lagi untuk menutup ↺</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kartu 3 -->
+          <div id="flip-card-2" onclick="toggleFlipCard(2)" class="flip-card">
+            <div class="flip-card-inner">
+              <div class="flip-card-front bg-gradient-to-br from-emerald-400 to-teal-600 text-white p-5 flex flex-col items-center justify-center text-center shadow-md">
+                <span id="flip-status-2" class="absolute top-3 right-3 text-[11px] font-extrabold bg-amber-300 text-amber-950 px-2.5 py-0.5 rounded-full">+5 ⭐</span>
+                <span class="text-4xl mb-2.5">🧩</span>
+                <h4 class="text-base sm:text-lg font-bold leading-snug">Kartu 3:<br/>Bagian-Bagian Penting Halaman Web</h4>
+                <span class="text-[11px] bg-white/20 px-3 py-1 rounded-full mt-3 font-bold">Klik untuk balik ↻</span>
+              </div>
+              <div class="flip-card-back bg-emerald-50 border-4 border-emerald-400 p-4 flex flex-col justify-between text-center shadow-inner">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-extrabold text-emerald-700">Kartu 3</span>
+                  <span class="text-[11px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Sudah Dibaca ✅</span>
+                </div>
+                <p class="text-xs text-slate-700 leading-relaxed font-semibold my-auto">
+                  Tersusun dari 5 bagian utama: <strong>1) Header</strong>, <strong>2) Navigasi</strong>, <strong>3) Konten Materi</strong>, <strong>4) Interaksi/Kuis</strong>, dan <strong>5) Footer</strong> di bagian paling bawah.
+                </p>
+                <span class="text-[11px] font-bold text-emerald-700">Klik lagi untuk menutup ↺</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kartu 4 -->
+          <div id="flip-card-3" onclick="toggleFlipCard(3)" class="flip-card">
+            <div class="flip-card-inner">
+              <div class="flip-card-front bg-gradient-to-br from-purple-500 to-pink-600 text-white p-5 flex flex-col items-center justify-center text-center shadow-md">
+                <span id="flip-status-3" class="absolute top-3 right-3 text-[11px] font-extrabold bg-amber-300 text-amber-950 px-2.5 py-0.5 rounded-full">+5 ⭐</span>
+                <span class="text-4xl mb-2.5">🛡️</span>
+                <h4 class="text-base sm:text-lg font-bold leading-snug">Kartu 4:<br/>Etika &amp; Keamanan Berinternet Anak SD</h4>
+                <span class="text-[11px] bg-white/20 px-3 py-1 rounded-full mt-3 font-bold">Klik untuk balik ↻</span>
+              </div>
+              <div class="flip-card-back bg-purple-50 border-4 border-purple-400 p-4 flex flex-col justify-between text-center shadow-inner">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-extrabold text-purple-700">Kartu 4</span>
+                  <span class="text-[11px] font-extrabold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">Sudah Dibaca ✅</span>
+                </div>
+                <p class="text-xs text-slate-700 leading-relaxed font-semibold my-auto">
+                  Gunakan kata-kata santun, <strong>jangan bagikan alamat rumah atau kata sandi</strong>, hindari iklan mencurigakan, dan minta bimbingan guru/orang tua!
+                </p>
+                <span class="text-[11px] font-bold text-purple-700">Klik lagi untuk menutup ↺</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BAGIAN B: Mini-Game "Rakit Halaman Web Edukasi" -->
+      <div class="bg-white rounded-3xl p-5 sm:p-7 border-4 border-blue-300 shadow-lg space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <span class="bg-amber-100 text-amber-800 text-xs font-extrabold px-3 py-1 rounded-full">🎮 BAGIAN B • MINI-GAME (+20 ⭐)</span>
+            <h3 class="text-xl sm:text-2xl font-bold text-slate-800 mt-1.5">Rakit Halaman Web Edukasi!</h3>
+            <p class="text-xs sm:text-sm text-slate-600">
+              Susun <strong>5 komponen halaman web</strong> di bawah ini dari urutan atas (1) ke bawah (5) yang benar! Gunakan tombol <strong>⬆️ Naik</strong> / <strong>⬇️ Turun</strong> atau klik dua blok untuk menukar posisinya.
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" onclick="shuffleWebComponents()" class="btn-game bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700 text-xs sm:text-sm font-extrabold px-4 py-2.5 rounded-2xl">
+              🔄 Acak Ulang
+            </button>
+            <button type="button" onclick="checkWebArrangement()" class="btn-game bg-emerald-500 hover:bg-emerald-600 border-emerald-700 text-white text-xs sm:text-sm font-extrabold px-5 py-2.5 rounded-2xl shadow-md">
+              ✅ Periksa Susunan Web
+            </button>
+          </div>
+        </div>
+
+        <!-- Daftar 5 Blok Komponen Web yang Dapat Diurutkan -->
+        <div id="web-sorter-list" class="space-y-3">
+          <!-- Dirender secara dinamis & aman oleh JS -->
+        </div>
+
+        <!-- Kotak Umpan Balik Pemeriksaan -->
+        <div id="web-sorter-feedback" class="hidden rounded-2xl p-4 border-2 text-xs sm:text-sm font-bold"></div>
+
+        <!-- Pratinjau Mini Halaman Web Jadi (Muncul saat semua 5 komponen benar) -->
+        <div id="web-mini-preview" class="hidden bg-slate-800 rounded-3xl p-4 sm:p-5 shadow-xl space-y-3 animate-pop-in">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-rose-400"></span>
+              <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+              <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+              <span class="text-xs font-mono text-slate-300 ml-1">https://web-edukasi-sd.id/hasil-rakitan</span>
+            </div>
+            <span class="bg-emerald-500 text-white text-xs font-extrabold px-3 py-1 rounded-full">✨ Pratinjau Halaman Web Jadi!</span>
+          </div>
+
+          <div class="bg-white rounded-2xl overflow-hidden border-2 border-slate-600 divide-y divide-slate-200">
+            <!-- 1. Header -->
+            <div class="bg-gradient-to-r from-sky-500 to-indigo-600 text-white p-4 text-center">
+              <span class="text-2xl">🏷️</span>
+              <h4 class="font-display text-lg sm:text-xl font-bold">1. Portal Belajar Bahasa Indonesia SD</h4>
+            </div>
+            <!-- 2. Navigasi -->
+            <div class="bg-amber-50 px-4 py-2.5 flex flex-wrap justify-center gap-2 text-xs font-extrabold text-amber-900">
+              <span class="bg-white border border-amber-300 px-3 py-1 rounded-lg">🧭 Beranda</span>
+              <span class="bg-white border border-amber-300 px-3 py-1 rounded-lg">📚 Materi Cerita</span>
+              <span class="bg-white border border-amber-300 px-3 py-1 rounded-lg">🎯 Kuis Seru</span>
+            </div>
+            <!-- 3. Konten -->
+            <div class="p-4 sm:p-5 bg-emerald-50/60 flex flex-col sm:flex-row items-center gap-4">
+              <span class="text-4xl">📖🖼️</span>
+              <p class="text-xs sm:text-sm text-slate-700 font-semibold">
+                <strong>3. Konten Materi &amp; Gambar:</strong> Membaca cerita bergambar melatih imajinasi dan memperkaya kosakata Bahasa Indonesia siswa SD.
+              </p>
+            </div>
+            <!-- 4. Kuis -->
+            <div class="p-4 bg-purple-50 text-center">
+              <span class="inline-block bg-purple-600 text-white text-xs font-extrabold px-4 py-2 rounded-xl shadow">
+                🎮 4. Mulai Kuis &amp; Permainan Interaktif!
+              </span>
+            </div>
+            <!-- 5. Footer -->
+            <div class="bg-slate-100 px-4 py-2.5 text-center text-[11px] font-bold text-slate-600">
+              📌 5. Footer: Dibuat oleh <span id="preview-web-author" class="text-sky-700">Petualang Cilik</span> • Kelas SD Pulau Aksara
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-1">
+            <button type="button" onclick="navigateTo('zone2')" class="btn-game bg-amber-400 border-amber-600 text-amber-950 font-extrabold px-5 py-2.5 rounded-2xl text-xs sm:text-sm">
+              Lanjut ke Zona 2: Bengkel Imajinasi →
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ZONA 2: BENGKEL IMAJINASI (MENULIS KREATIF)                         -->
+    <!-- =================================================================== -->
+    <section id="view-zone2" class="hidden space-y-8 animate-pop-in">
+      <!-- Header Zona 2 -->
+      <div class="bg-gradient-to-r from-amber-500 to-orange-500 rounded-3xl p-6 text-white shadow-lg border-b-8 border-orange-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <span class="bg-white/20 text-xs font-extrabold px-3 py-1 rounded-full">ZONA 2 • MENULIS KREATIF</span>
+          <h2 class="text-2xl sm:text-3xl font-bold mt-2">🎨 Bengkel Imajinasi</h2>
+          <p class="text-amber-100 text-sm sm:text-base font-semibold mt-1">Putar mesin ide, gunakan rumus ADIKSIMBA &amp; Kosakata Ajaib, lalu terbitkan Kartu Buku Ceritamu!</p>
+        </div>
+        <button type="button" onclick="navigateTo('home')" class="btn-game bg-white text-amber-700 border-amber-200 font-extrabold px-4 py-2 rounded-2xl text-sm shrink-0">
+          ← Kembali ke Peta
+        </button>
+      </div>
+
+      <!-- BAGIAN A: Mesin Pemutar Ide Cerita (Story Idea Spinner) -->
+      <div class="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 rounded-3xl p-5 sm:p-7 border-4 border-amber-300 shadow-md space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <span class="bg-amber-200 text-amber-900 text-xs font-extrabold px-3 py-1 rounded-full">🎲 BAGIAN A • STORY IDEA SPINNER (+5 ⭐)</span>
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-900 mt-1">Mesin Pemutar Ide Cerita</h3>
+            <p class="text-xs sm:text-sm text-slate-600">Putar ketiga kotak gulung untuk mendapatkan inspirasi cerita unikmu!</p>
+          </div>
+          <button type="button" id="btn-spin-idea" onclick="spinStoryIdea()" class="btn-game bg-gradient-to-r from-amber-500 to-orange-500 border-orange-700 text-white font-extrabold px-5 py-3 rounded-2xl text-sm sm:text-base shadow-md flex items-center gap-2">
+            <span>🎲 Putar Mesin Ide!</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-white rounded-2xl p-4 border-2 border-amber-300 text-center shadow-sm">
+            <span class="text-xs font-extrabold text-amber-600 uppercase tracking-wider">1. Tokoh Utama (Siapa)</span>
+            <p id="spinner-hero" class="font-display text-lg sm:text-xl font-bold text-slate-800 mt-2 min-h-[56px] flex items-center justify-center">
+              🦊 Kancil Cerdik
+            </p>
+          </div>
+          <div class="bg-white rounded-2xl p-4 border-2 border-orange-300 text-center shadow-sm">
+            <span class="text-xs font-extrabold text-orange-600 uppercase tracking-wider">2. Latar Tempat (Di mana)</span>
+            <p id="spinner-setting" class="font-display text-lg sm:text-xl font-bold text-slate-800 mt-2 min-h-[56px] flex items-center justify-center">
+              ☁️ Perpustakaan Awan
+            </p>
+          </div>
+          <div class="bg-white rounded-2xl p-4 border-2 border-rose-300 text-center shadow-sm">
+            <span class="text-xs font-extrabold text-rose-600 uppercase tracking-wider">3. Peristiwa / Masalah (Apa)</span>
+            <p id="spinner-event" class="font-display text-lg sm:text-xl font-bold text-slate-800 mt-2 min-h-[56px] flex items-center justify-center">
+              🗺️ Menemukan Peta Harta Karun
+            </p>
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <button type="button" onclick="copyIdeaToStudio()" class="btn-game bg-white hover:bg-amber-100 border-amber-400 text-amber-900 font-extrabold px-4 py-2.5 rounded-2xl text-xs sm:text-sm shadow-sm">
+            ✨ Salin Ide ke Studio Cerita ↓
+          </button>
+        </div>
+      </div>
+
+      <!-- BAGIAN B: Panduan Rumus ADIKSIMBA (Interaktif) -->
+      <div class="bg-white rounded-3xl p-5 sm:p-7 border-4 border-orange-200 shadow-md space-y-4">
+        <div>
+          <span class="bg-orange-100 text-orange-800 text-xs font-extrabold px-3 py-1 rounded-full">🧭 BAGIAN B • KERANGKA CERITA</span>
+          <h3 class="text-xl sm:text-2xl font-bold text-orange-800 mt-1">Panduan Rumus ADIKSIMBA (Interaktif)</h3>
+          <p class="text-xs sm:text-sm text-slate-600">Klik salah satu kartu ADIKSIMBA untuk melihat pertanyaan pemandu dan contoh kalimatnya!</p>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+          <button type="button" onclick="selectAdiksimba('A')" id="adik-btn-A" class="adik-btn btn-game bg-rose-500 border-rose-700 text-white p-3 rounded-2xl text-center">
+            <span class="block text-xl font-black">A</span>
+            <span class="text-xs font-extrabold">Apa</span>
+          </button>
+          <button type="button" onclick="selectAdiksimba('DI')" id="adik-btn-DI" class="adik-btn btn-game bg-amber-100 hover:bg-amber-200 border-amber-300 text-amber-900 p-3 rounded-2xl text-center">
+            <span class="block text-xl font-black">DI</span>
+            <span class="text-xs font-extrabold">Di mana</span>
+          </button>
+          <button type="button" onclick="selectAdiksimba('K')" id="adik-btn-K" class="adik-btn btn-game bg-emerald-100 hover:bg-emerald-200 border-emerald-300 text-emerald-900 p-3 rounded-2xl text-center">
+            <span class="block text-xl font-black">K</span>
+            <span class="text-xs font-extrabold">Kapan</span>
+          </button>
+          <button type="button" onclick="selectAdiksimba('SI')" id="adik-btn-SI" class="adik-btn btn-game bg-sky-100 hover:bg-sky-200 border-sky-300 text-sky-900 p-3 rounded-2xl text-center">
+            <span class="block text-xl font-black">SI</span>
+            <span class="text-xs font-extrabold">Siapa</span>
+          </button>
+          <button type="button" onclick="selectAdiksimba('M')" id="adik-btn-M" class="adik-btn btn-game bg-indigo-100 hover:bg-indigo-200 border-indigo-300 text-indigo-900 p-3 rounded-2xl text-center">
+            <span class="block text-xl font-black">M</span>
+            <span class="text-xs font-extrabold">Mengapa</span>
+          </button>
+          <button type="button" onclick="selectAdiksimba('BA')" id="adik-btn-BA" class="adik-btn btn-game bg-purple-100 hover:bg-purple-200 border-purple-300 text-purple-900 p-3 rounded-2xl text-center">
+            <span class="block text-xl font-black">BA</span>
+            <span class="text-xs font-extrabold">Bagaimana</span>
+          </button>
+        </div>
+
+        <div id="adiksimba-box" class="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 text-xs sm:text-sm text-slate-800 leading-relaxed">
+          💡 <strong>Apa (Peristiwa Utama):</strong> Menanyakan kejadian apa yang terjadi dalam cerita.<br/>
+          <em>Contoh Kalimat: "Kancil Cerdik menemukan sebuah peta harta karun berkilau di balik rak buku tua."</em>
+        </div>
+      </div>
+
+      <!-- BAGIAN C: Studio Tulis Ceritaku & Kosakata Ajaib -->
+      <div class="bg-white rounded-3xl p-5 sm:p-7 border-4 border-amber-300 shadow-lg space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <span class="bg-emerald-100 text-emerald-800 text-xs font-extrabold px-3 py-1 rounded-full">📝 BAGIAN C • KARYA TULIS (+30 ⭐)</span>
+            <h3 class="text-xl sm:text-2xl font-bold text-slate-800 mt-1">Studio Tulis Ceritaku &amp; Kosakata Ajaib</h3>
+          </div>
+          <span id="story-word-count" class="text-xs sm:text-sm font-extrabold bg-sky-100 text-sky-800 px-3.5 py-1.5 rounded-xl border border-sky-200">
+            📊 0 Kata
+          </span>
+        </div>
+
+        <!-- Chip Kosakata Ajaib -->
+        <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 space-y-3">
+          <p class="text-xs font-extrabold text-purple-900">🪄 Kosakata Ajaib (Klik tombol kata untuk menyisipkannya langsung ke dalam ceritamu):</p>
+
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-[11px] font-extrabold text-purple-700 mr-1">Kata Sifat:</span>
+            <button type="button" onclick="insertMagicChip('berkilau')" class="bg-white hover:bg-purple-200 text-purple-900 border border-purple-300 text-xs font-bold px-3 py-1 rounded-xl transition">+ berkilau</button>
+            <button type="button" onclick="insertMagicChip('ramah')" class="bg-white hover:bg-purple-200 text-purple-900 border border-purple-300 text-xs font-bold px-3 py-1 rounded-xl transition">+ ramah</button>
+            <button type="button" onclick="insertMagicChip('pemberani')" class="bg-white hover:bg-purple-200 text-purple-900 border border-purple-300 text-xs font-bold px-3 py-1 rounded-xl transition">+ pemberani</button>
+            <button type="button" onclick="insertMagicChip('misterius')" class="bg-white hover:bg-purple-200 text-purple-900 border border-purple-300 text-xs font-bold px-3 py-1 rounded-xl transition">+ misterius</button>
+            <button type="button" onclick="insertMagicChip('sejuk')" class="bg-white hover:bg-purple-200 text-purple-900 border border-purple-300 text-xs font-bold px-3 py-1 rounded-xl transition">+ sejuk</button>
+            <button type="button" onclick="insertMagicChip('ceria')" class="bg-white hover:bg-purple-200 text-purple-900 border border-purple-300 text-xs font-bold px-3 py-1 rounded-xl transition">+ ceria</button>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-[11px] font-extrabold text-amber-700 mr-1">Kata Kerja Ekspresif:</span>
+            <button type="button" onclick="insertMagicChip('berbisik')" class="bg-white hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-bold px-3 py-1 rounded-xl transition">+ berbisik</button>
+            <button type="button" onclick="insertMagicChip('melompat')" class="bg-white hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-bold px-3 py-1 rounded-xl transition">+ melompat</button>
+            <button type="button" onclick="insertMagicChip('mengamati')" class="bg-white hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-bold px-3 py-1 rounded-xl transition">+ mengamati</button>
+            <button type="button" onclick="insertMagicChip('menjelajah')" class="bg-white hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-bold px-3 py-1 rounded-xl transition">+ menjelajah</button>
+            <button type="button" onclick="insertMagicChip('tersenyum')" class="bg-white hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-bold px-3 py-1 rounded-xl transition">+ tersenyum</button>
+            <button type="button" onclick="insertMagicChip('berkilauan')" class="bg-white hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-bold px-3 py-1 rounded-xl transition">+ berkilauan</button>
+          </div>
+        </div>
+
+        <!-- Form Input Cerita -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label for="story-title-input" class="block text-xs font-extrabold text-slate-700 mb-1">Judul Cerita:</label>
+            <input id="story-title-input" type="text" oninput="updateWordCounter()" placeholder="Contoh: Petualangan di Perpustakaan Awan" class="w-full rounded-xl border-2 border-slate-300 focus:border-amber-500 focus:outline-none px-3.5 py-2.5 text-sm font-bold" />
+          </div>
+          <div>
+            <label for="story-author-input" class="block text-xs font-extrabold text-slate-700 mb-1">Nama Penulis:</label>
+            <input id="story-author-input" type="text" value="Petualang Cilik" class="w-full rounded-xl border-2 border-slate-300 focus:border-amber-500 focus:outline-none px-3.5 py-2.5 text-sm font-bold bg-sky-50/50" />
+          </div>
+          <div>
+            <label for="story-theme-select" class="block text-xs font-extrabold text-slate-700 mb-1">Tema Ilustrasi Kartu:</label>
+            <select id="story-theme-select" class="w-full rounded-xl border-2 border-slate-300 focus:border-amber-500 focus:outline-none px-3.5 py-2.5 text-sm font-bold bg-white">
+              <option value="forest">🌲 Hutan Ajaib</option>
+              <option value="space">🚀 Luar Angkasa</option>
+              <option value="ocean">🐠 Laut Biru</option>
+              <option value="rainbow">🏰 Kastil Pelangi</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="story-content-textarea" class="block text-xs font-extrabold text-slate-700 mb-1">Isi Cerita Kreatifmu (Tulis bagian Awal, Tengah, &amp; Akhir):</label>
+          <textarea id="story-content-textarea" rows="5" oninput="updateWordCounter()" placeholder="Pada suatu pagi yang cerah dan sejuk, seorang anak pemberani mulai menjelajah..." class="w-full rounded-2xl border-2 border-slate-300 focus:border-amber-500 focus:outline-none p-4 text-sm leading-relaxed"></textarea>
+        </div>
+
+        <!-- Checklist Sunting Mandiri (4 Kotak Centang) -->
+        <div class="bg-sky-50 border-2 border-sky-200 rounded-2xl p-4 space-y-2.5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <p class="text-xs sm:text-sm font-extrabold text-sky-900">✅ Checklist Sunting Mandiri (Lengkapi 4 centang untuk bonus +5 ⭐):</p>
+            <span id="checklist-badge" class="text-xs font-extrabold bg-white text-sky-700 px-2.5 py-1 rounded-lg border border-sky-200">0 / 4 Tercentang</span>
+          </div>
+
+          <label class="flex items-center gap-2.5 text-xs sm:text-sm font-semibold text-slate-700 cursor-pointer">
+            <input type="checkbox" onchange="handleSelfEditChecklist()" class="sunting-check w-4 h-4 rounded text-sky-600 focus:ring-sky-500" />
+            <span>Huruf kapital sudah digunakan di awal kalimat &amp; nama orang.</span>
+          </label>
+          <label class="flex items-center gap-2.5 text-xs sm:text-sm font-semibold text-slate-700 cursor-pointer">
+            <input type="checkbox" onchange="handleSelfEditChecklist()" class="sunting-check w-4 h-4 rounded text-sky-600 focus:ring-sky-500" />
+            <span>Tanda baca titik (.), tanya (?), atau seru (!) sudah terpasang dengan tepat.</span>
+          </label>
+          <label class="flex items-center gap-2.5 text-xs sm:text-sm font-semibold text-slate-700 cursor-pointer">
+            <input type="checkbox" onchange="handleSelfEditChecklist()" class="sunting-check w-4 h-4 rounded text-sky-600 focus:ring-sky-500" />
+            <span>Cerita memiliki urutan bagian awal, tengah, dan akhir yang jelas.</span>
+          </label>
+          <label class="flex items-center gap-2.5 text-xs sm:text-sm font-semibold text-slate-700 cursor-pointer">
+            <input type="checkbox" onchange="handleSelfEditChecklist()" class="sunting-check w-4 h-4 rounded text-sky-600 focus:ring-sky-500" />
+            <span>Sudah dibaca ulang untuk memperbaiki kesalahan penulisan kata.</span>
+          </label>
+        </div>
+
+        <div class="flex justify-end">
+          <button type="button" onclick="publishStoryCard()" class="btn-game bg-gradient-to-r from-emerald-500 to-teal-600 border-teal-800 text-white font-extrabold px-6 py-3.5 rounded-2xl text-sm sm:text-base shadow-lg flex items-center gap-2">
+            <span>📖 Terbitkan Kartu Buku Cerita</span>
+          </button>
+        </div>
+
+        <!-- Pratinjau Kartu Buku Cerita Bergambar -->
+        <div id="published-story-wrapper" class="hidden pt-6 border-t-4 border-dashed border-amber-200">
+          <div id="story-book-card" class="printable-area max-w-3xl mx-auto rounded-3xl p-6 sm:p-8 border-4 border-emerald-400 bg-gradient-to-br from-emerald-50 via-white to-amber-50 shadow-2xl space-y-5">
+            <div class="flex flex-col sm:flex-row items-center gap-5 border-b-2 border-amber-200 pb-5">
+              <div id="story-card-illustration" class="w-24 h-28 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex flex-col items-center justify-center shadow-lg border-4 border-white shrink-0">
+                <span class="text-4xl">🌲</span>
+                <span class="text-[9px] font-black uppercase tracking-widest mt-1">Hutan Ajaib</span>
+              </div>
+              <div class="text-center sm:text-left">
+                <span class="bg-amber-200 text-amber-950 text-[11px] font-black px-3 py-0.5 rounded-full uppercase">Kartu Buku Cerita Pulau Aksara</span>
+                <h4 id="out-story-title" class="text-2xl sm:text-3xl font-bold text-slate-800 mt-1.5">Judul Cerita</h4>
+                <p class="text-xs sm:text-sm font-bold text-slate-600 mt-1">
+                  Penulis: <span id="out-story-author" class="text-sky-700">Petualang Cilik</span> • <span id="out-story-date">22 November 2026</span>
+                </p>
+              </div>
+            </div>
+
+            <div class="bg-white/90 rounded-2xl p-5 border border-amber-200 shadow-inner">
+              <p id="out-story-body" class="text-sm sm:text-base text-slate-700 leading-relaxed whitespace-pre-line first-letter:text-3xl first-letter:font-bold first-letter:text-amber-600"></p>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-2 no-print">
+              <span class="text-xs font-extrabold text-emerald-700">🌟 Karya kreatifmu siap dicetak dan dipajang di kelas!</span>
+              <div class="flex gap-2">
+                <button type="button" onclick="window.print()" class="btn-game bg-sky-500 border-sky-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl">
+                  🖨️ Cetak Kartu Cerita
+                </button>
+                <button type="button" onclick="navigateTo('zone3')" class="btn-game bg-emerald-500 border-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl">
+                  Lanjut ke Zona 3 →
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ZONA 3: TAMAN SASTRA CERIA (PANTUN & PUISI ANAK)                    -->
+    <!-- =================================================================== -->
+    <section id="view-zone3" class="hidden space-y-8 animate-pop-in">
+      <!-- Header Zona 3 -->
+      <div class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-3xl p-6 text-white shadow-lg border-b-8 border-teal-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <span class="bg-white/20 text-xs font-extrabold px-3 py-1 rounded-full">ZONA 3 • MENULIS SASTRA ANAK</span>
+          <h2 class="text-2xl sm:text-3xl font-bold mt-2">🌸 Taman Sastra Ceria</h2>
+          <p class="text-emerald-100 text-sm sm:text-base font-semibold mt-1">Pahami keindahan Pantun &amp; Puisi Anak, pecahkan Teka-Teki Sajak, lalu buat Poster Sastramu!</p>
+        </div>
+        <button type="button" onclick="navigateTo('home')" class="btn-game bg-white text-emerald-700 border-emerald-200 font-extrabold px-4 py-2 rounded-2xl text-sm shrink-0">
+          ← Kembali ke Peta
+        </button>
+      </div>
+
+      <!-- Ringkasan Materi Pantun & Puisi Anak -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-3xl p-6 border-4 border-emerald-200 shadow-md space-y-2.5">
+          <div class="flex items-center gap-2.5">
+            <span class="text-3xl">🎶</span>
+            <h3 class="text-xl font-bold text-emerald-800">Mengenal Pantun (Rima a-b-a-b)</h3>
+          </div>
+          <ul class="text-xs sm:text-sm text-slate-700 space-y-1.5 font-semibold">
+            <li>• Terdiri dari <strong>4 baris</strong> dalam satu bait.</li>
+            <li>• Baris 1 &amp; 2 disebut <strong>Sampiran</strong> (pengantar bunyi).</li>
+            <li>• Baris 3 &amp; 4 disebut <strong>Isi</strong> (pesan atau nasihat pantun).</li>
+            <li>• Bersajak silang <strong>a-b-a-b</strong> (bunyi akhir baris 1 = 3, dan baris 2 = 4).</li>
+          </ul>
+        </div>
+
+        <div class="bg-white rounded-3xl p-6 border-4 border-teal-200 shadow-md space-y-2.5">
+          <div class="flex items-center gap-2.5">
+            <span class="text-3xl">🌷</span>
+            <h3 class="text-xl font-bold text-teal-800">Mengenal Puisi Anak</h3>
+          </div>
+          <ul class="text-xs sm:text-sm text-slate-700 space-y-1.5 font-semibold">
+            <li>• Mengutamakan <strong>ungkapan perasaan</strong>, imajinasi, dan keindahan bahasa.</li>
+            <li>• Menggunakan pilihan kata (diksi) yang puitis serta <strong>majas sederhana</strong> seperti personifikasi (contoh: <em>"matahari tersenyum ramah"</em>).</li>
+            <li>• Disusun dalam larik-larik (baris) dan bait yang indah dibaca.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Permainan Teka-Teki Sajak Pantun (3 Soal) -->
+      <div class="bg-white rounded-3xl p-5 sm:p-7 border-4 border-emerald-300 shadow-lg space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <span class="bg-amber-100 text-amber-800 text-xs font-extrabold px-3 py-1 rounded-full">🧩 PERMAINAN SASTRA (+15 ⭐)</span>
+            <h3 class="text-xl sm:text-2xl font-bold text-slate-800 mt-1">Teka-Teki Sajak Pantun</h3>
+            <p class="text-xs sm:text-sm text-slate-600">Pilih baris yang paling tepat untuk melengkapi rima pantun di bawah ini!</p>
+          </div>
+          <span id="pantun-quiz-progress" class="text-xs font-extrabold bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-xl">
+            Soal 1 dari 3
+          </span>
+        </div>
+
+        <div class="bg-emerald-50/70 border-2 border-emerald-200 rounded-2xl p-5 space-y-4">
+          <div id="pantun-riddle-lines" class="bg-white p-4 rounded-xl border border-emerald-200 space-y-1.5 text-sm sm:text-base font-bold text-slate-800">
+            <!-- Diisi JS -->
+          </div>
+          <div id="pantun-riddle-options" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <!-- Diisi JS -->
+          </div>
+          <div id="pantun-riddle-feedback" class="hidden rounded-xl p-3.5 text-xs sm:text-sm font-bold"></div>
+        </div>
+      </div>
+
+      <!-- Panggung Karya Sastraku -->
+      <div class="bg-white rounded-3xl p-5 sm:p-7 border-4 border-teal-300 shadow-lg space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <span class="bg-purple-100 text-purple-800 text-xs font-extrabold px-3 py-1 rounded-full">🎨 POSTER SASTRA (+25 ⭐)</span>
+            <h3 class="text-xl sm:text-2xl font-bold text-slate-800 mt-1">Panggung Karya Sastraku</h3>
+          </div>
+          <div class="flex gap-2">
+            <button type="button" onclick="setLiteratureMode('pantun')" id="mode-btn-pantun" class="btn-game bg-emerald-600 border-emerald-800 text-white text-xs font-extrabold px-4 py-2 rounded-xl">
+              🎶 Mode Pantun
+            </button>
+            <button type="button" onclick="setLiteratureMode('puisi')" id="mode-btn-puisi" class="btn-game bg-slate-100 border-slate-300 text-slate-700 text-xs font-extrabold px-4 py-2 rounded-xl">
+              🌸 Mode Puisi Anak
+            </button>
+          </div>
+        </div>
+
+        <!-- Panel Input Mode Pantun -->
+        <div id="panel-mode-pantun" class="space-y-4 bg-emerald-50/60 p-4 sm:p-5 rounded-2xl border-2 border-emerald-200">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <p class="text-xs sm:text-sm font-extrabold text-emerald-900">Tulis 4 Baris Pantunmu (Bersajak a-b-a-b):</p>
+            <button type="button" onclick="checkPantunRhymeAuto()" class="btn-game bg-amber-400 hover:bg-amber-300 border-amber-600 text-amber-950 text-xs font-extrabold px-4 py-2 rounded-xl shadow-sm">
+              🔍 Cek Rima Pantun Otomatis
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-extrabold text-amber-700 mb-1">Baris 1 (Sampiran - a):</label>
+              <input id="p-line-1" type="text" placeholder="Jalan-jalan ke kota Blitar," class="w-full rounded-xl border-2 border-amber-200 focus:border-amber-500 focus:outline-none px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-extrabold text-sky-700 mb-1">Baris 2 (Sampiran - b):</label>
+              <input id="p-line-2" type="text" placeholder="Jangan lupa membeli sukun." class="w-full rounded-xl border-2 border-sky-200 focus:border-sky-500 focus:outline-none px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-extrabold text-amber-700 mb-1">Baris 3 (Isi - a):</label>
+              <input id="p-line-3" type="text" placeholder="Kalau kamu ingin pintar," class="w-full rounded-xl border-2 border-amber-200 focus:border-amber-500 focus:outline-none px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-extrabold text-sky-700 mb-1">Baris 4 (Isi - b):</label>
+              <input id="p-line-4" type="text" placeholder="Harus belajar dengan tekun." class="w-full rounded-xl border-2 border-sky-200 focus:border-sky-500 focus:outline-none px-3 py-2 text-sm" />
+            </div>
+          </div>
+
+          <div id="rhyme-auto-feedback" class="hidden rounded-xl p-3 text-xs sm:text-sm font-bold"></div>
+        </div>
+
+        <!-- Panel Input Mode Puisi Anak -->
+        <div id="panel-mode-puisi" class="hidden space-y-3 bg-teal-50/60 p-4 sm:p-5 rounded-2xl border-2 border-teal-200">
+          <div>
+            <label class="block text-xs font-extrabold text-teal-900 mb-1">Judul Puisi Anak:</label>
+            <input id="poem-title-input" type="text" placeholder="Contoh: Mentari Pagi di Sekolahku" class="w-full rounded-xl border-2 border-teal-200 focus:border-teal-500 focus:outline-none px-3.5 py-2 text-sm font-bold" />
+          </div>
+          <div>
+            <label class="block text-xs font-extrabold text-teal-900 mb-1">Bait Puisi (Tulis setiap larik pada baris baru):</label>
+            <textarea id="poem-body-textarea" rows="5" placeholder="Angin berhembus pelan menyapa daun,&#10;Matahari pagi tersenyum ramah.&#10;Bunga mawar mekar di taman,&#10;Harum wanginya semerbak menawan." class="w-full rounded-xl border-2 border-teal-200 focus:border-teal-500 focus:outline-none p-3 text-sm"></textarea>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <label for="poster-frame-select" class="text-xs font-extrabold text-slate-700 mr-2">Bingkai Poster:</label>
+            <select id="poster-frame-select" class="rounded-xl border-2 border-slate-300 px-3 py-2 text-xs sm:text-sm font-bold bg-white">
+              <option value="garden">🌻 Taman Bunga Ceria</option>
+              <option value="sunset">🌅 Senja Keemasan</option>
+              <option value="ocean">🐬 Ombak Biru</option>
+            </select>
+          </div>
+          <button type="button" onclick="createLiteraturePoster()" class="btn-game bg-gradient-to-r from-emerald-500 to-teal-600 border-teal-800 text-white font-extrabold px-6 py-3 rounded-2xl text-sm sm:text-base shadow-lg">
+            🎨 Buat Poster Sastra
+          </button>
+        </div>
+
+        <!-- Hasil Poster Sastra Siap Cetak -->
+        <div id="lit-poster-wrapper" class="hidden pt-6 border-t-4 border-dashed border-emerald-200">
+          <div id="lit-poster-card" class="printable-area max-w-xl mx-auto rounded-3xl p-7 sm:p-9 border-8 border-double border-emerald-500 bg-gradient-to-b from-emerald-50 via-white to-amber-50 text-center shadow-2xl">
+            <div id="lit-poster-deco" class="text-4xl mb-2">🌻🦋🌼</div>
+            <span id="lit-poster-badge" class="inline-block bg-emerald-600 text-white text-xs font-extrabold px-3.5 py-1 rounded-full uppercase">Karya Pantun</span>
+            <h4 id="lit-poster-title" class="text-2xl font-bold text-slate-800 mt-3">Pantun Karya Anak</h4>
+            <div id="lit-poster-content" class="my-5 space-y-1.5 text-base sm:text-lg font-bold text-slate-800 bg-white/85 p-5 rounded-2xl border border-emerald-200 shadow-inner">
+              <!-- Baris karya -->
+            </div>
+            <p class="text-xs sm:text-sm font-extrabold text-emerald-800">
+              Karya: <span id="lit-poster-author">Petualang Cilik</span> • Pulau Aksara
+            </p>
+            <div class="mt-6 pt-4 border-t border-emerald-200 flex flex-wrap justify-center gap-3 no-print">
+              <button type="button" onclick="window.print()" class="btn-game bg-sky-500 border-sky-700 text-white text-xs font-bold px-4 py-2 rounded-xl">
+                🖨️ Cetak Poster Sastra
+              </button>
+              <button type="button" onclick="navigateTo('zone4')" class="btn-game bg-purple-600 border-purple-800 text-white text-xs font-bold px-4 py-2 rounded-xl">
+                Lanjut ke Arena Tantangan →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ZONA 4: ARENA TANTANGAN BINTANG (10 SOAL KUIS EVALUASI)             -->
+    <!-- =================================================================== -->
+    <section id="view-zone4" class="hidden space-y-8 animate-pop-in">
+      <!-- Header Zona 4 -->
+      <div class="bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 rounded-3xl p-6 text-white shadow-lg border-b-8 border-purple-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 no-print">
+        <div>
+          <span class="bg-white/20 text-xs font-extrabold px-3 py-1 rounded-full">ZONA 4 • EVALUASI AKHIR (10 SOAL)</span>
+          <h2 class="text-2xl sm:text-3xl font-bold mt-2">🏆 Arena Tantangan Bintang</h2>
+          <p class="text-purple-100 text-sm sm:text-base font-semibold mt-1">Jawab 10 soal evaluasi menulis kreatif dan menulis sastra untuk meraih Sertifikat Kelulusan Digital!</p>
+        </div>
+        <button type="button" onclick="navigateTo('home')" class="btn-game bg-white text-purple-700 border-purple-200 font-extrabold px-4 py-2 rounded-2xl text-sm shrink-0">
+          ← Kembali ke Peta
+        </button>
+      </div>
+
+      <!-- Layar Mulai Kuis -->
+      <div id="z4-start-box" class="bg-white rounded-3xl p-6 sm:p-10 border-4 border-purple-200 shadow-lg text-center space-y-5 no-print">
+        <div class="w-20 h-20 rounded-3xl bg-purple-100 border-2 border-purple-300 flex items-center justify-center text-5xl mx-auto animate-float-slow">
+          🎯
+        </div>
+        <div class="max-w-xl mx-auto space-y-2">
+          <h3 class="text-2xl sm:text-3xl font-bold text-purple-900">Siap Menaklukkan 10 Tantangan Bintang?</h3>
+          <p class="text-sm sm:text-base text-slate-600">
+            Setiap jawaban benar bernilai <strong>10 poin</strong> (+10 ⭐). Baca setiap kutipan puisi dan pernyataan dengan cermat!
+          </p>
+        </div>
+        <button type="button" onclick="startEvaluationQuiz()" class="btn-game bg-gradient-to-r from-purple-600 to-pink-600 border-purple-900 text-white font-extrabold px-8 py-4 rounded-2xl text-base sm:text-lg shadow-xl">
+          🚀 Mulai Kuis Sekarang!
+        </button>
+      </div>
+
+      <!-- Kontainer Soal Kuis -->
+      <div id="z4-quiz-box" class="hidden bg-white rounded-3xl p-5 sm:p-8 border-4 border-purple-200 shadow-lg space-y-6 no-print">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b-2 border-purple-100">
+          <span id="z4-step-badge" class="bg-purple-600 text-white text-xs sm:text-sm font-extrabold px-3.5 py-1.5 rounded-xl">Soal 1 dari 10</span>
+          <div class="flex items-center gap-2.5">
+            <span id="z4-score-badge" class="bg-amber-100 text-amber-800 text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl border border-amber-300">Skor: 0 / 100</span>
+            <button type="button" onclick="startEvaluationQuiz()" class="text-xs font-extrabold text-slate-600 hover:text-rose-600 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+              🔄 Ulang Kuis
+            </button>
+          </div>
+        </div>
+
+        <div class="w-full bg-purple-100 h-3 rounded-full overflow-hidden">
+          <div id="z4-progress-fill" class="bg-gradient-to-r from-purple-500 to-pink-500 h-full transition-all duration-300" style="width: 10%"></div>
+        </div>
+
+        <div class="space-y-4">
+          <h3 id="z4-q-main" class="text-lg sm:text-xl font-bold text-slate-800 leading-relaxed"></h3>
+          <div id="z4-q-quote-wrap" class="hidden bg-amber-50 border-l-4 border-amber-500 rounded-r-2xl p-4 sm:p-5">
+            <p id="z4-q-quote" class="text-sm sm:text-base font-bold text-slate-800 italic leading-relaxed"></p>
+          </div>
+          <p id="z4-q-sub" class="hidden text-base sm:text-lg font-bold text-purple-950 leading-relaxed"></p>
+        </div>
+
+        <div id="z4-options-list" class="grid grid-cols-1 md:grid-cols-2 gap-3.5"></div>
+
+        <div id="z4-feedback-panel" class="hidden rounded-2xl p-4 border-2 space-y-2">
+          <p id="z4-fb-title" class="font-extrabold text-sm sm:text-base"></p>
+          <p id="z4-fb-desc" class="text-xs sm:text-sm leading-relaxed"></p>
+          <div class="pt-2 flex justify-end">
+            <button type="button" id="z4-next-btn" onclick="nextEvaluationQuestion()" class="btn-game bg-purple-600 border-purple-800 text-white font-extrabold px-5 py-2.5 rounded-xl text-sm">
+              Soal Berikutnya →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sertifikat Kelulusan Digital -->
+      <div id="z4-cert-wrapper" class="hidden space-y-6">
+        <div class="bg-gradient-to-r from-amber-400 to-orange-400 rounded-3xl p-6 text-amber-950 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4 no-print">
+          <div class="flex items-center gap-4">
+            <span class="text-5xl">🎊</span>
+            <div>
+              <h3 class="text-2xl font-bold">Hebat! Evaluasi Tantangan Bintang Selesai!</h3>
+              <p class="text-sm font-bold">Nilai Akhir: <span id="z4-final-score">100</span> / 100 • Predikat: <span id="z4-final-pred">Sangat Memuaskan</span></p>
+            </div>
+          </div>
+          <button type="button" onclick="startEvaluationQuiz()" class="btn-game bg-white border-amber-600 text-amber-900 font-extrabold px-4 py-2.5 rounded-2xl text-xs sm:text-sm">
+            🔄 Ulang Kuis
+          </button>
+        </div>
+
+        <div class="printable-area bg-white rounded-3xl p-6 sm:p-10 border-[10px] border-double border-amber-400 shadow-2xl max-w-4xl mx-auto text-center">
+          <span class="inline-block bg-sky-100 text-sky-800 px-4 py-1 rounded-full text-xs font-extrabold uppercase tracking-widest mb-3">
+            🏅 Sertifikat Kelulusan Digital 🏅
+          </span>
+          <h2 class="text-3xl sm:text-4xl font-bold text-amber-600">PIAGAM PENGHARGAAN</h2>
+          <p class="text-xs sm:text-sm font-bold text-slate-500 mt-1">Diberikan dengan bangga kepada:</p>
+
+          <div class="my-5 inline-flex flex-col items-center bg-gradient-to-r from-sky-50 via-amber-50 to-emerald-50 border-2 border-amber-300 rounded-3xl px-8 py-4">
+            <span id="cert-avatar-out" class="text-5xl mb-1">🚀</span>
+            <h3 id="cert-name-out" class="text-2xl sm:text-4xl font-bold text-slate-800 border-b-2 border-amber-400 pb-1 px-4">Petualang Cilik</h3>
+            <span id="cert-rank-out" class="mt-2 text-xs sm:text-sm font-extrabold text-emerald-700 bg-emerald-100 px-3 py-0.5 rounded-full">👑 Maestro Aksara</span>
+          </div>
+
+          <p class="max-w-2xl mx-auto text-xs sm:text-base text-slate-700 leading-relaxed font-semibold">
+            Telah menuntaskan pembelajaran interaktif di <strong>Pulau Aksara</strong> meliputi materi <em>Media Pembelajaran Web</em>, <em>Menulis Kreatif (ADIKSIMBA)</em>, dan <em>Menulis Sastra Anak (Pantun &amp; Puisi)</em>.
+          </p>
+
+          <div class="grid grid-cols-3 gap-3 max-w-lg mx-auto my-6">
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3">
+              <span class="block text-[11px] font-bold text-amber-700">Total Bintang</span>
+              <span id="cert-stars-out" class="text-lg sm:text-xl font-black text-amber-900">0 ⭐</span>
+            </div>
+            <div class="bg-purple-50 border border-purple-200 rounded-2xl p-3">
+              <span class="block text-[11px] font-bold text-purple-700">Skor Evaluasi</span>
+              <span id="cert-score-out" class="text-lg sm:text-xl font-black text-purple-900">100 / 100</span>
+            </div>
+            <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3">
+              <span class="block text-[11px] font-bold text-emerald-700">Predikat</span>
+              <span id="cert-pred-out" class="text-sm sm:text-base font-black text-emerald-900">Sangat Baik</span>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center justify-around gap-6 pt-4 text-xs sm:text-sm text-slate-600">
+            <div>
+              <p id="cert-date-out" class="font-bold text-slate-700">22 November 2026</p>
+              <div class="w-40 border-b-2 border-slate-300 my-5 mx-auto"></div>
+              <p class="font-extrabold text-slate-800">Tanggal Kelulusan</p>
+            </div>
+            <div>
+              <p class="font-bold text-sky-700">Proyek Media Pembelajaran PGSD</p>
+              <div class="my-1.5 text-2xl">🏝️✍️</div>
+              <div class="w-44 border-b-2 border-slate-300 mb-1 mx-auto"></div>
+              <p class="font-extrabold text-slate-800">Pemandu Pulau Aksara</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-center no-print">
+          <button type="button" onclick="window.print()" class="btn-game bg-gradient-to-r from-sky-500 to-blue-600 border-blue-800 text-white font-extrabold px-6 py-3.5 rounded-2xl text-sm sm:text-base shadow-lg">
+            🖨️ Cetak Sertifikat Kelulusan Digital
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ZONA 5: MODE PERMAINAN DETEKTIF KATA AJAIB (12 KASUS RAHASIA)       -->
+    <!-- =================================================================== -->
+    <section id="view-zone5" class="hidden space-y-8 animate-pop-in">
+      <!-- Header Misi Detektif Kata Ajaib -->
+      <div class="bg-gradient-to-r from-rose-500 via-pink-600 to-amber-500 rounded-3xl p-6 text-white shadow-lg border-b-8 border-rose-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 no-print">
+        <div>
+          <span class="bg-white/20 text-xs font-extrabold px-3 py-1 rounded-full">🔎 MISI RAHASIA: TEMUKAN KATA YANG HILANG! ⭐</span>
+          <h2 class="text-2xl sm:text-3xl font-bold mt-2">🔎 DETEKTIF KATA AJAIB</h2>
+          <p class="text-rose-100 text-sm sm:text-base font-semibold mt-1">
+            Petunjuk permainan: Jadilah detektif cilik! Bacalah setiap petunjuk, pecahkan teka-teki, dan temukan jawaban yang benar. Kumpulkan bintang sebanyak-banyaknya!
+          </p>
+        </div>
+        <button type="button" onclick="navigateTo('home')" class="btn-game bg-white text-rose-700 border-rose-200 font-extrabold px-4 py-2 rounded-2xl text-sm shrink-0">
+          ← Kembali ke Peta
+        </button>
+      </div>
+
+      <!-- Pelacak Progres 0 / 12 Kasus Terpecahkan & Pangkat Detektif -->
+      <div class="bg-white rounded-3xl p-5 border-4 border-rose-200 shadow-md flex flex-col md:flex-row items-center justify-between gap-4 no-print">
+        <div class="flex items-center gap-3.5">
+          <div class="w-14 h-14 rounded-2xl bg-rose-100 border-2 border-rose-300 flex items-center justify-center text-3xl">
+            🕵️
+          </div>
+          <div>
+            <p class="text-xs font-extrabold text-rose-600 uppercase">Pangkat Detektifmu:</p>
+            <h3 id="detective-rank-label" class="text-xl font-bold text-slate-800">🔰 Detektif Magang</h3>
+          </div>
+        </div>
+
+        <div class="flex-1 w-full md:max-w-md space-y-1.5">
+          <div class="flex items-center justify-between text-xs font-extrabold">
+            <span class="text-slate-600">Progres Penyelidikan:</span>
+            <span id="detective-cases-counter" class="text-rose-700">0 / 12 Kasus Terpecahkan</span>
+          </div>
+          <div class="w-full bg-rose-100 h-4 rounded-full overflow-hidden p-0.5 border border-rose-200">
+            <div id="detective-progress-bar" class="bg-gradient-to-r from-rose-500 to-amber-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MISI 1: SIAPA AKU? (Kasus 1–3) -->
+      <div class="bg-white rounded-3xl p-5 sm:p-7 border-4 border-sky-200 shadow-md space-y-5 no-print">
+        <div>
+          <span class="bg-sky-100 text-sky-800 text-xs font-extrabold px-3 py-1 rounded-full">🔍 MISI 1 (+5 ⭐ per kasus)</span>
+          <h3 class="text-xl sm:text-2xl font-bold text-sky-800 mt-1">🔍 Misi 1: Siapa Aku?</h3>
+          <p class="text-xs sm:text-sm text-slate-600">Tebak benda berdasarkan petunjuk yang diberikan!</p>
+        </div>
+
+        <div id="misi1-container" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <!-- Dirender aman oleh JS -->
+        </div>
+      </div>
+
+      <!-- MISI 2: SUSUN HURUF RAHASIA (Kasus 4–6) -->
+      <div class="bg-white rounded-3xl p-5 sm:p-7 border-4 border-amber-200 shadow-md space-y-5 no-print">
+        <div>
+          <span class="bg-amber-100 text-amber-800 text-xs font-extrabold px-3 py-1 rounded-full">🧩 MISI 2 (+5 ⭐ per kasus)</span>
+          <h3 class="text-xl sm:text-2xl font-bold text-amber-800 mt-1">🧩 Misi 2: Susun Huruf Rahasia</h3>
+          <p class="text-xs sm:text-sm text-slate-600">Klik ubin huruf yang berantakan secara berurutan menjadi kata yang benar!</p>
+        </div>
+
+        <div id="misi2-container" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <!-- Dirender aman oleh JS -->
+        </div>
+      </div>
+
+      <!-- MISI 3: CARI KATA TERSEMBUNYI (Kasus 7–9 + Papan Sandi Huruf 9x9) -->
+      <div class="bg-white rounded-3xl p-5 sm:p-7 border-4 border-emerald-200 shadow-md space-y-5 no-print">
+        <div>
+          <span class="bg-emerald-100 text-emerald-800 text-xs font-extrabold px-3 py-1 rounded-full">🕵️ MISI 3 (+5 ⭐ per kasus)</span>
+          <h3 class="text-xl sm:text-2xl font-bold text-emerald-800 mt-1">🕵️ Misi 3: Cari Kata Tersembunyi</h3>
+          <p class="text-xs sm:text-sm text-slate-600">Temukan kata yang sesuai dengan petunjuk! Kamu bisa mencari hurufnya di <strong>Papan Sandi 9×9</strong> atau gunakan <strong>Kaca Pembesar Petunjuk</strong>.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <!-- Papan Sandi Huruf 9x9 Interaktif -->
+          <div class="lg:col-span-5 bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-4 text-center space-y-2.5">
+            <p class="text-xs font-extrabold text-emerald-900">🔢 Papan Sandi Huruf 9×9 (Klik huruf untuk menandai temuan):</p>
+            <div id="cipher-grid-9x9" class="grid grid-cols-9 gap-1 max-w-xs mx-auto">
+              <!-- 81 sel huruf 9x9 -->
+            </div>
+            <button type="button" onclick="clearCipherHighlights()" class="text-[11px] font-extrabold text-emerald-700 hover:underline">
+              Bersihkan Tanda Papan Sandi
+            </button>
+          </div>
+
+          <!-- 3 Kasus Misi 3 -->
+          <div id="misi3-container" class="lg:col-span-7 space-y-4">
+            <!-- Kasus 7, 8, 9 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- MISI 4: SUSUN KALIMAT AJAIB (Kasus 10–12) -->
+      <div class="bg-white rounded-3xl p-5 sm:p-7 border-4 border-purple-200 shadow-md space-y-5 no-print">
+        <div>
+          <span class="bg-purple-100 text-purple-800 text-xs font-extrabold px-3 py-1 rounded-full">✨ MISI 4 (+5 ⭐ per kasus)</span>
+          <h3 class="text-xl sm:text-2xl font-bold text-purple-800 mt-1">✨ Misi 4: Susun Kalimat Ajaib</h3>
+          <p class="text-xs sm:text-sm text-slate-600">Klik kartu-kartu kata secara berurutan menjadi kalimat yang padu dan benar!</p>
+        </div>
+
+        <div id="misi4-container" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <!-- Kasus 10, 11, 12 -->
+        </div>
+      </div>
+
+      <!-- PENGHARGAAN: LENCANA RESMI KEPALA DETEKTIF KATA AJAIB -->
+      <div id="detective-badge-award" class="hidden space-y-4">
+        <div class="printable-area max-w-2xl mx-auto bg-gradient-to-br from-amber-50 via-yellow-50 to-rose-50 rounded-3xl p-7 sm:p-9 border-8 border-double border-amber-500 shadow-2xl text-center space-y-4">
+          <div class="text-5xl">🎖️🕵️‍♂️🔍</div>
+          <span class="inline-block bg-rose-600 text-white text-xs font-extrabold px-4 py-1 rounded-full uppercase tracking-wider">
+            Penghargaan Misi Rahasia Tuntas
+          </span>
+          <h3 class="text-2xl sm:text-3xl font-bold text-amber-800">LENCANA RESMI KEPALA DETEKTIF KATA AJAIB</h3>
+          <p class="text-xs sm:text-sm font-bold text-slate-600">Dianugerahkan kepada Detektif Cilik Hebat:</p>
+          <p id="detective-award-name" class="text-2xl sm:text-3xl font-bold text-slate-900 underline decoration-amber-400">Petualang Cilik</p>
+          <p class="text-xs sm:text-sm text-slate-700 font-semibold max-w-lg mx-auto">
+            Berhasil memecahkan seluruh <strong>12 Kasus Rahasia</strong> dalam Misi Detektif Kata Ajaib dengan ketelitian dan kecerdasan luar biasa!
+          </p>
+          <div class="pt-3 flex justify-center gap-3 no-print">
+            <button type="button" onclick="window.print()" class="btn-game bg-amber-500 border-amber-700 text-amber-950 font-extrabold px-5 py-2.5 rounded-2xl text-xs sm:text-sm">
+              🖨️ Cetak Lencana Detektif
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- FOOTER APLIKASI                                                       -->
+  <!-- ===================================================================== -->
+  <footer class="max-w-6xl mx-auto px-4 py-6 text-center text-xs text-slate-500 font-semibold no-print">
+    🏝️ <strong>Pulau Aksara: Petualangan Menulis &amp; Media Web</strong> • Proyek Mata Kuliah PGSD untuk Siswa SD Kelas 4–6.
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 1: EDIT PROFIL SISWA (NAMA & 4 AVATAR)                          -->
+  <!-- ===================================================================== -->
+  <div id="profile-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 border-4 border-sky-300 shadow-2xl animate-pop-in space-y-5">
+      <div class="text-center">
+        <span class="inline-block bg-amber-100 text-amber-800 text-xs font-extrabold px-3 py-1 rounded-full mb-2">👋 Selamat Datang di Pulau Aksara!</span>
+        <h3 class="text-2xl font-bold text-slate-800">Atur Profil Petualangmu</h3>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1">Isi namamu dan pilih salah satu dari 4 avatar ceria!</p>
+      </div>
+
+      <div>
+        <label for="profile-name-input" class="block text-xs font-extrabold text-slate-700 mb-1">Nama Siswa:</label>
+        <input id="profile-name-input" type="text" maxlength="28" placeholder="Contoh: Aisyah Putri" class="w-full rounded-2xl border-2 border-sky-300 focus:border-sky-500 focus:outline-none px-4 py-3 text-base font-bold text-slate-800" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-extrabold text-slate-700 mb-2">Pilih Avatar:</label>
+        <div class="grid grid-cols-2 gap-2.5">
+          <button type="button" onclick="chooseProfileAvatar('🚀')" data-av="🚀" class="av-option-btn border-2 border-sky-500 bg-sky-50 rounded-2xl p-3 flex items-center gap-2.5 text-left transition">
+            <span class="text-3xl">🚀</span>
+            <div>
+              <p class="font-extrabold text-xs text-slate-800">Astronot</p>
+              <p class="text-[10px] text-slate-500">Penjelajah Kata</p>
+            </div>
+          </button>
+          <button type="button" onclick="chooseProfileAvatar('🧭')" data-av="🧭" class="av-option-btn border-2 border-slate-200 hover:border-amber-400 rounded-2xl p-3 flex items-center gap-2.5 text-left transition">
+            <span class="text-3xl">🧭</span>
+            <div>
+              <p class="font-extrabold text-xs text-slate-800">Penjelajah</p>
+              <p class="text-[10px] text-slate-500">Petualang Pulau</p>
+            </div>
+          </button>
+          <button type="button" onclick="chooseProfileAvatar('🧙‍♂️')" data-av="🧙‍♂️" class="av-option-btn border-2 border-slate-200 hover:border-purple-400 rounded-2xl p-3 flex items-center gap-2.5 text-left transition">
+            <span class="text-3xl">🧙‍♂️</span>
+            <div>
+              <p class="font-extrabold text-xs text-slate-800">Penyihir Kata</p>
+              <p class="text-[10px] text-slate-500">Peramu Puisi</p>
+            </div>
+          </button>
+          <button type="button" onclick="chooseProfileAvatar('🦉')" data-av="🦉" class="av-option-btn border-2 border-slate-200 hover:border-emerald-400 rounded-2xl p-3 flex items-center gap-2.5 text-left transition">
+            <span class="text-3xl">🦉</span>
+            <div>
+              <p class="font-extrabold text-xs text-slate-800">Kutu Buku</p>
+              <p class="text-[10px] text-slate-500">Sahabat Cerita</p>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <button type="button" onclick="saveProfileModal()" class="w-full btn-game bg-gradient-to-r from-sky-500 to-emerald-500 border-emerald-700 text-white font-extrabold py-3.5 rounded-2xl text-base shadow-lg">
+        🚀 Simpan Profil &amp; Mulai!
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 2: INFO GURU (PGSD)                                             -->
+  <!-- ===================================================================== -->
+  <div id="teacher-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[88vh] overflow-y-auto p-6 sm:p-8 border-4 border-indigo-300 shadow-2xl animate-pop-in space-y-5">
+      <div class="flex items-start justify-between gap-3 border-b-2 border-indigo-100 pb-4">
+        <div>
+          <span class="bg-indigo-100 text-indigo-800 text-xs font-extrabold px-3 py-1 rounded-full">PERANGKAT PEMBELAJARAN PGSD</span>
+          <h3 class="text-2xl font-bold text-indigo-900 mt-1.5">👩‍🏫 Info Guru (PGSD) &amp; Capaian Pembelajaran</h3>
+          <p class="text-xs sm:text-sm text-slate-500">Kurikulum Merdeka • Bahasa Indonesia Fase B (Kelas 4) &amp; Fase C (Kelas 5–6 SD)</p>
+        </div>
+        <button type="button" onclick="closeTeacherModal()" class="bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 font-black w-9 h-9 rounded-xl flex items-center justify-center">
+          ✕
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
+        <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-r-2xl">
+          <h4 class="font-bold text-indigo-900 text-base mb-1">1. Capaian Pembelajaran (CP) Kurikulum Merdeka Fase B/C</h4>
+          <p>
+            <strong>Membaca &amp; Memirsa:</strong> Peserta didik memahami pesan dari teks narasi, puisi anak, pantun, dan media digital interaktif dengan memperhatikan kosakata baru serta etika berinternet.<br/>
+            <strong>Menulis:</strong> Peserta didik mampu menulis cerita kreatif berdasarkan gagasan dan imajinasi sendiri dengan alur runtut (ADIKSIMBA), melakukan penyuntingan mandiri, serta menulis karya sastra anak (pantun dan puisi).
+          </p>
+        </div>
+
+        <div class="bg-sky-50 border-l-4 border-sky-500 p-4 rounded-r-2xl space-y-1">
+          <h4 class="font-bold text-sky-900 text-base">2. Panduan Penggunaan di Kelas (2 × 35 Menit)</h4>
+          <ol class="list-decimal pl-5 space-y-1">
+            <li><strong>Eksplorasi Zona 1 &amp; 2 (30 Menit):</strong> Siswa mengenal struktur web edukasi, lalu merancang cerita kreatif dengan Story Idea Spinner dan Kosakata Ajaib serta mencetak Kartu Buku Cerita.</li>
+            <li><strong>Kreasi Sastra &amp; Misi Detektif (25 Menit):</strong> Siswa berlatih rima pantun/puisi di Zona 3 dan mengasah kosakata melalui 12 kasus Detektif Kata Ajaib.</li>
+            <li><strong>Evaluasi Akhir (15 Menit):</strong> Siswa mengerjakan 10 soal kuis di Zona 4 dan mencetak Sertifikat Kelulusan Digital.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <button type="button" onclick="closeTeacherModal()" class="btn-game bg-indigo-600 border-indigo-800 text-white font-extrabold px-5 py-2.5 rounded-2xl text-sm">
+          Tutup Info Guru
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT TERSTRUKTUR, AMAN NULL-SAFE, & INTERAKTIF                  -->
+  <!-- ===================================================================== -->
+  <script>
+    (function () {
+      'use strict';
+
+      // Helper DOM Aman (Mencegah error null reference)
+      function $(id) {
+        return document.getElementById(id);
+      }
+
+      // =====================================================================
+      // 1. WEB AUDIO API (EFEK SUARA CERIA AMAN DENGAN TRY/CATCH)
+      // =====================================================================
+      const SoundEngine = {
+        ctx: null,
+        muted: false,
+
+        ensureContext() {
+          try {
+            if (!this.ctx) {
+              const AudioCtx = window.AudioContext || window.webkitAudioContext;
+              if (AudioCtx) {
+                this.ctx = new AudioCtx();
+              }
+            }
+            if (this.ctx && this.ctx.state === 'suspended') {
+              this.ctx.resume();
+            }
+          } catch (e) {
+            // Abaikan secara aman jika browser memblokir audio
+          }
+        },
+
+        tone(freq, type, duration, delay = 0, vol = 0.14) {
+          if (this.muted) return;
+          try {
+            this.ensureContext();
+            if (!this.ctx) return;
+
+            const start = this.ctx.currentTime + delay;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, start);
+
+            gain.gain.setValueAtTime(vol, start);
+            gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start(start);
+            osc.stop(start + duration);
+          } catch (e) {
+            // Aman tanpa mengganggu jalannya aplikasi
+          }
+        },
+
+        click() {
+          this.tone(540, 'sine', 0.08, 0, 0.11);
+          this.tone(760, 'triangle', 0.07, 0.03, 0.08);
+        },
+
+        correct() {
+          this.tone(523.25, 'triangle', 0.14, 0, 0.15);
+          this.tone(659.25, 'triangle', 0.14, 0.09, 0.15);
+          this.tone(783.99, 'triangle', 0.24, 0.18, 0.17);
+        },
+
+        wrong() {
+          this.tone(300, 'sine', 0.16, 0, 0.12);
+          this.tone(240, 'sine', 0.22, 0.11, 0.12);
+        },
+
+        spinTick(step) {
+          const freqs = [440, 494, 523, 587, 659, 698, 784];
+          this.tone(freqs[step % freqs.length], 'triangle', 0.05, 0, 0.06);
+        },
+
+        celebrate() {
+          const melody = [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5];
+          const times = [0, 0.1, 0.2, 0.32, 0.48, 0.6];
+          melody.forEach((f, idx) => this.tone(f, 'triangle', 0.23, times[idx], 0.17));
+        }
+      };
+
+      window.toggleSound = function () {
+        SoundEngine.muted = !SoundEngine.muted;
+        const icon = $('sound-icon');
+        const label = $('sound-label');
+        const btn = $('sound-toggle-btn');
+        if (!icon || !label || !btn) return;
+
+        if (SoundEngine.muted) {
+          icon.textContent = '🔇';
+          label.textContent = 'Suara Mati';
+          btn.classList.remove('bg-emerald-500', 'hover:bg-emerald-600', 'border-emerald-700');
+          btn.classList.add('bg-slate-400', 'hover:bg-slate-500', 'border-slate-600');
+        } else {
+          icon.textContent = '🔊';
+          label.textContent = 'Suara Aktif';
+          btn.classList.remove('bg-slate-400', 'hover:bg-slate-500', 'border-slate-600');
+          btn.classList.add('bg-emerald-500', 'hover:bg-emerald-600', 'border-emerald-700');
+          SoundEngine.click();
+        }
+      };
+
+      // =====================================================================
+      // 2. KONFETI SELEBRASI & TOAST NOTIFIKASI
+      // =====================================================================
+      function fireConfetti() {
+        const canvas = $('confetti-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const palette = ['#F59E0B', '#10B981', '#3B82F6', '#EC4899', '#8B5CF6', '#EF4444'];
+        const particles = Array.from({ length: 90 }, () => ({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height - canvas.height,
+          w: Math.random() * 10 + 6,
+          h: Math.random() * 6 + 4,
+          color: palette[Math.floor(Math.random() * palette.length)],
+          vy: Math.random() * 3.5 + 2.4,
+          vx: (Math.random() - 0.5) * 3,
+          rot: Math.random() * 360,
+          vRot: (Math.random() - 0.5) * 8
+        }));
+
+        let frame = 0;
+        function render() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          particles.forEach((p) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.rot += p.vRot;
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate((p.rot * Math.PI) / 180);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+            ctx.restore();
+          });
+          frame++;
+          if (frame < 120) {
+            requestAnimationFrame(render);
+          } else {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+          }
+        }
+        render();
+      }
+
+      function showToast(msg, type = 'info') {
+        const container = $('toast-container');
+        if (!container) return;
+
+        const styles = {
+          success: 'bg-emerald-600 border-emerald-800 text-white',
+          warning: 'bg-amber-500 border-amber-700 text-amber-950',
+          error: 'bg-rose-500 border-rose-700 text-white',
+          info: 'bg-sky-600 border-sky-800 text-white'
+        };
+
+        const div = document.createElement('div');
+        div.className = `${styles[type] || styles.info} border-b-4 rounded-2xl px-4 py-3 shadow-xl text-xs sm:text-sm font-extrabold animate-pop-in pointer-events-auto`;
+        div.textContent = msg;
+        container.appendChild(div);
+
+        setTimeout(() => {
+          div.style.opacity = '0';
+          div.style.transition = 'opacity 0.25s ease';
+          setTimeout(() => div.remove(), 260);
+        }, 3000);
+      }
+
+      // =====================================================================
+      // 3. STATE UTAMA & GAMIFIKASI SISWA
+      // =====================================================================
+      const state = {
+        studentName: 'Petualang Cilik',
+        avatar: '🚀',
+        stars: 0,
+        flippedCards: [false, false, false, false],
+        milestones: {
+          z1Cards: false,
+          z1Sort: false,
+          z2Spin: false,
+          z2Checklist: false,
+          z2Publish: false,
+          z3Riddle: false,
+          z3Poster: false,
+          z4Quiz: false,
+          z5Detective: false
+        },
+        z4BestStars: 0
+      };
+
+      let tempAvatar = '🚀';
+
+      function getRankTitle(stars) {
+        if (stars >= 160) return '👑 Maestro Aksara';
+        if (stars >= 100) return '⚔️ Ksatria Bahasa';
+        if (stars >= 45) return '🧭 Petualang Kata';
+        return '🌱 Penjelajah Pemula';
+      }
+
+      function rewardStars(amount, reason) {
+        state.stars += amount;
+        refreshHeaderUI();
+        if (reason) {
+          showToast(`⭐ +${amount} Bintang! ${reason}`, 'success');
+        }
+      }
+
+      function refreshHeaderUI() {
+        const rank = getRankTitle(state.stars);
+        if ($('header-name')) $('header-name').textContent = state.studentName;
+        if ($('welcome-student-name')) $('welcome-student-name').textContent = state.studentName;
+        if ($('header-avatar')) $('header-avatar').textContent = state.avatar;
+        if ($('header-stars')) $('header-stars').textContent = String(state.stars);
+        if ($('header-rank')) $('header-rank').textContent = rank;
+        if ($('preview-web-author')) $('preview-web-author').textContent = state.studentName;
+
+        const authorInput = $('story-author-input');
+        if (authorInput && (!authorInput.value.trim() || authorInput.dataset.autoSync !== 'false')) {
+          authorInput.value = state.studentName;
+        }
+
+        const totalMilestones = Object.keys(state.milestones).length;
+        const doneMilestones = Object.values(state.milestones).filter(Boolean).length;
+        const pct = Math.round((doneMilestones / totalMilestones) * 100);
+
+        if ($('overall-progress-bar')) $('overall-progress-bar').style.width = `${pct}%`;
+        if ($('overall-progress-text')) $('overall-progress-text').textContent = `${pct}%`;
+
+        if (state.milestones.z1Cards && state.milestones.z1Sort && $('badge-zone1')) {
+          $('badge-zone1').textContent = '✅ Tuntas!';
+          $('badge-zone1').className = 'text-xs font-extrabold px-3 py-1 rounded-full bg-emerald-100 text-emerald-700';
+        }
+        if (state.milestones.z2Publish && $('badge-zone2')) {
+          $('badge-zone2').textContent = '✅ Kartu Terbit!';
+          $('badge-zone2').className = 'text-xs font-extrabold px-3 py-1 rounded-full bg-emerald-100 text-emerald-700';
+        }
+        if (state.milestones.z3Riddle && state.milestones.z3Poster && $('badge-zone3')) {
+          $('badge-zone3').textContent = '✅ Tuntas!';
+          $('badge-zone3').className = 'text-xs font-extrabold px-3 py-1 rounded-full bg-emerald-100 text-emerald-700';
+        }
+        if (state.milestones.z4Quiz && $('badge-zone4')) {
+          $('badge-zone4').textContent = '✅ Lulus Kuis!';
+          $('badge-zone4').className = 'text-xs font-extrabold px-3 py-1 rounded-full bg-emerald-100 text-emerald-700';
+        }
+      }
+
+      // Profil Modal
+      window.openProfileModal = function () {
+        SoundEngine.click();
+        const inp = $('profile-name-input');
+        if (inp) {
+          inp.value = state.studentName === 'Petualang Cilik' ? '' : state.studentName;
+        }
+        if ($('profile-modal')) $('profile-modal').classList.remove('hidden');
+      };
+
+      window.chooseProfileAvatar = function (av) {
+        SoundEngine.click();
+        tempAvatar = av;
+        document.querySelectorAll('.av-option-btn').forEach((btn) => {
+          if (btn.dataset.av === av) {
+            btn.classList.add('border-sky-500', 'bg-sky-50');
+            btn.classList.remove('border-slate-200');
+          } else {
+            btn.classList.remove('border-sky-500', 'bg-sky-50');
+            btn.classList.add('border-slate-200');
+          }
+        });
+      };
+
+      window.saveProfileModal = function () {
+        SoundEngine.correct();
+        const inp = $('profile-name-input');
+        const val = inp ? inp.value.trim() : '';
+        state.studentName = val || 'Petualang Cilik';
+        state.avatar = tempAvatar;
+        refreshHeaderUI();
+        if ($('profile-modal')) $('profile-modal').classList.add('hidden');
+        showToast(`Halo ${state.studentName}! Selamat berpetualang di Pulau Aksara! 🏝️`, 'info');
+      };
+
+      // Info Guru Modal
+      window.openTeacherModal = function () {
+        SoundEngine.click();
+        if ($('teacher-modal')) $('teacher-modal').classList.remove('hidden');
+      };
+
+      window.closeTeacherModal = function () {
+        SoundEngine.click();
+        if ($('teacher-modal')) $('teacher-modal').classList.add('hidden');
+      };
+
+      // Navigasi 5 Zona + Peta
+      window.navigateTo = function (viewKey) {
+        SoundEngine.click();
+        const views = ['home', 'zone1', 'zone2', 'zone3', 'zone4', 'zone5'];
+        views.forEach((v) => {
+          const el = $(`view-${v}`);
+          if (el) el.classList.add('hidden');
+        });
+
+        const activeView = $(`view-${viewKey}`);
+        if (activeView) {
+          activeView.classList.remove('hidden');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.querySelectorAll('.nav-pill').forEach((btn) => {
+          if (btn.dataset.nav === viewKey) {
+            btn.className = 'nav-pill px-2.5 py-1.5 rounded-xl text-xs font-extrabold bg-sky-600 text-white transition whitespace-nowrap';
+          } else {
+            btn.className = 'nav-pill px-2.5 py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-700 hover:bg-sky-100 transition whitespace-nowrap';
+          }
+        });
+      };
+
+      // =====================================================================
+      // 4. ZONA 1: PULAU MEDIA WEB PINTAR (FLIP CARDS & SUSUN 5 KOMPONEN WEB)
+      // =====================================================================
+      window.toggleFlipCard = function (index) {
+        const card = $(`flip-card-${index}`);
+        if (!card) return;
+
+        card.classList.toggle('flipped');
+        if (!state.flippedCards[index]) {
+          state.flippedCards[index] = true;
+          SoundEngine.correct();
+
+          const statusPill = $(`flip-status-${index}`);
+          if (statusPill) {
+            statusPill.textContent = 'Dibaca ✅';
+            statusPill.className = 'absolute top-3 right-3 text-[11px] font-extrabold bg-emerald-200 text-emerald-950 px-2.5 py-0.5 rounded-full';
+          }
+
+          const count = state.flippedCards.filter(Boolean).length;
+          if ($('flip-cards-counter')) {
+            $('flip-cards-counter').textContent = `📖 Progres: ${count} / 4 Kartu`;
+          }
+
+          if (count === 4) {
+            state.milestones.z1Cards = true;
+          }
+          rewardStars(5, `Membaca Kartu Materi Web #${index + 1}!`);
+        } else {
+          SoundEngine.click();
+        }
+      };
+
+      // Data 5 Komponen Halaman Web
+      const masterWebComponents = [
+        {
+          id: 'header',
+          correctOrder: 1,
+          icon: '🏷️',
+          title: 'Header & Judul Website',
+          desc: 'Bagian paling atas berisi judul dan logo'
+        },
+        {
+          id: 'nav',
+          correctOrder: 2,
+          icon: '🧭',
+          title: 'Menu Navigasi',
+          desc: 'Tombol pindah halaman atau pilih materi'
+        },
+        {
+          id: 'content',
+          correctOrder: 3,
+          icon: '📖',
+          title: 'Konten Materi & Gambar',
+          desc: 'Isi pelajaran, teks, dan ilustrasi'
+        },
+        {
+          id: 'quiz',
+          correctOrder: 4,
+          icon: '🎮',
+          title: 'Kuis & Permainan Interaktif',
+          desc: 'Latihan soal untuk menguji pemahaman'
+        },
+        {
+          id: 'footer',
+          correctOrder: 5,
+          icon: '📌',
+          title: 'Footer / Info Pembuat',
+          desc: 'Bagian paling bawah berisi nama pembuat & kelas'
+        }
+      ];
+
+      let currentWebList = [];
+      let selectedSwapIdx = null;
+      let checkedWebResults = null;
+
+      function getShuffledWebList() {
+        const arr = masterWebComponents.map((item) => ({ ...item }));
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        // Pastikan tidak langsung terurut sempurna saat diacak
+        const alreadySorted = arr.every((item, idx) => item.correctOrder === idx + 1);
+        if (alreadySorted) {
+          [arr[0], arr[arr.length - 1]] = [arr[arr.length - 1], arr[0]];
+        }
+        return arr;
+      }
+
+      function renderWebSorter() {
+        const container = $('web-sorter-list');
+        if (!container) return;
+
+        container.innerHTML = currentWebList
+          .map((item, idx) => {
+            const isSelected = selectedSwapIdx === idx;
+            const checkResult = checkedWebResults ? checkedWebResults[idx] : null;
+
+            let borderStyle = 'border-slate-200 bg-slate-50/70 hover:border-sky-300';
+            if (isSelected) {
+              borderStyle = 'border-amber-500 bg-amber-50 ring-2 ring-amber-300';
+            } else if (checkResult === true) {
+              borderStyle = 'border-emerald-400 bg-emerald-50';
+            } else if (checkResult === false) {
+              borderStyle = 'border-rose-400 bg-rose-50';
+            }
+
+            let statusBadge = '';
+            if (checkResult === true) {
+              statusBadge = '<span class="text-xs font-extrabold bg-emerald-500 text-white px-2.5 py-1 rounded-xl">✅ Benar</span>';
+            } else if (checkResult === false) {
+              statusBadge = '<span class="text-xs font-extrabold bg-rose-500 text-white px-2.5 py-1 rounded-xl">❌ Belum tepat</span>';
+            }
+
+            return `
+              <div onclick="handleWebRowClick(${idx})" class="cursor-pointer rounded-2xl border-2 ${borderStyle} p-3.5 sm:p-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 transition">
+                <div class="flex items-center gap-3 min-w-0">
+                  <span class="w-8 h-8 rounded-xl bg-sky-600 text-white font-black text-sm flex items-center justify-center shrink-0">${idx + 1}</span>
+                  <span class="text-2xl shrink-0">${item.icon}</span>
+                  <div class="min-w-0">
+                    <p class="font-extrabold text-sm sm:text-base text-slate-800">${item.title}</p>
+                    <p class="text-xs text-slate-600">${item.desc}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 ml-auto shrink-0" onclick="event.stopPropagation()">
+                  ${statusBadge}
+                  <button type="button" onclick="moveWebRow(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Naikkan posisi" class="btn-game bg-white hover:bg-sky-100 disabled:opacity-40 border-slate-300 text-slate-800 text-xs font-extrabold px-2.5 py-1.5 rounded-xl">
+                    ⬆️ Naik
+                  </button>
+                  <button type="button" onclick="moveWebRow(${idx}, 1)" ${idx === currentWebList.length - 1 ? 'disabled' : ''} title="Turunkan posisi" class="btn-game bg-white hover:bg-sky-100 disabled:opacity-40 border-slate-300 text-slate-800 text-xs font-extrabold px-2.5 py-1.5 rounded-xl">
+                    ⬇️ Turun
+                  </button>
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+      }
+
+      window.moveWebRow = function (idx, direction) {
+        const targetIdx = idx + direction;
+        if (targetIdx < 0 || targetIdx >= currentWebList.length) return;
+        SoundEngine.click();
+        selectedSwapIdx = null;
+        checkedWebResults = null;
+        if ($('web-sorter-feedback')) $('web-sorter-feedback').classList.add('hidden');
+        [currentWebList[idx], currentWebList[targetIdx]] = [currentWebList[targetIdx], currentWebList[idx]];
+        renderWebSorter();
+      };
+
+      window.handleWebRowClick = function (idx) {
+        SoundEngine.click();
+        checkedWebResults = null;
+        if ($('web-sorter-feedback')) $('web-sorter-feedback').classList.add('hidden');
+
+        if (selectedSwapIdx === null) {
+          selectedSwapIdx = idx;
+          renderWebSorter();
+          showToast('Pilih blok lain untuk menukar posisinya, atau gunakan tombol ⬆️ Naik / ⬇️ Turun.', 'info');
+        } else if (selectedSwapIdx === idx) {
+          selectedSwapIdx = null;
+          renderWebSorter();
+        } else {
+          [currentWebList[selectedSwapIdx], currentWebList[idx]] = [currentWebList[idx], currentWebList[selectedSwapIdx]];
+          selectedSwapIdx = null;
+          renderWebSorter();
+        }
+      };
+
+      window.shuffleWebComponents = function () {
+        SoundEngine.click();
+        selectedSwapIdx = null;
+        checkedWebResults = null;
+        currentWebList = getShuffledWebList();
+        if ($('web-sorter-feedback')) $('web-sorter-feedback').classList.add('hidden');
+        if ($('web-mini-preview')) $('web-mini-preview').classList.add('hidden');
+        renderWebSorter();
+      };
+
+      window.checkWebArrangement = function () {
+        selectedSwapIdx = null;
+        checkedWebResults = currentWebList.map((item, idx) => item.correctOrder === idx + 1);
+        renderWebSorter();
+
+        const allCorrect = checkedWebResults.every(Boolean);
+        const fb = $('web-sorter-feedback');
+        const preview = $('web-mini-preview');
+
+        if (allCorrect) {
+          SoundEngine.celebrate();
+          fireConfetti();
+          if (fb) {
+            fb.className = 'rounded-2xl p-4 border-2 border-emerald-400 bg-emerald-100 text-emerald-950 text-xs sm:text-sm font-extrabold';
+            fb.textContent = '🎉 Luar Biasa! Semua 5 komponen halaman web tersusun dengan urutan yang sangat tepat (Header → Navigasi → Konten → Kuis → Footer)!';
+            fb.classList.remove('hidden');
+          }
+          if (preview) {
+            if ($('preview-web-author')) $('preview-web-author').textContent = state.studentName;
+            preview.classList.remove('hidden');
+            preview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+          if (!state.milestones.z1Sort) {
+            state.milestones.z1Sort = true;
+            rewardStars(20, 'Berhasil merakit susunan Halaman Web Edukasi!');
+          }
+        } else {
+          SoundEngine.wrong();
+          const rightCount = checkedWebResults.filter(Boolean).length;
+          if (fb) {
+            fb.className = 'rounded-2xl p-4 border-2 border-amber-400 bg-amber-100 text-amber-950 text-xs sm:text-sm font-extrabold';
+            fb.textContent = `💡 Masih ada ${5 - rightCount} baris yang belum tepat (bertanda ❌). Periksa kembali urutan dari atas ke bawah ya!`;
+            fb.classList.remove('hidden');
+          }
+          if (preview) preview.classList.add('hidden');
+        }
+      };
+
+      // =====================================================================
+      // 5. ZONA 2: BENGKEL IMAJINASI (SPINNER, ADIKSIMBA, STUDIO CERITA)
+      // =====================================================================
+      const spinnerBank = {
+        heroes: [
+          '🦊 Kancil Cerdik',
+          '🤖 Robot Penjaga Hutan',
+          '🌟 Putri Bintang',
+          '🛶 Nelayan Cilik',
+          '🎩 Kucing Pesulap'
+        ],
+        settings: [
+          '☁️ Perpustakaan Awan',
+          '🌈 Desa Pelangi',
+          '🌊 Dasar Laut Bercahaya',
+          '🌿 Kebun Sekolah Rahasia'
+        ],
+        events: [
+          '🗺️ Menemukan Peta Harta Karun',
+          '🌳 Menyelamatkan Pohon Tua yang Layu',
+          '⏳ Memecahkan Misteri Jam Ajaib'
+        ]
+      };
+
+      let isSpinnerRunning = false;
+      let latestSpunIdea = {
+        hero: '🦊 Kancil Cerdik',
+        setting: '☁️ Perpustakaan Awan',
+        event: '🗺️ Menemukan Peta Harta Karun'
+      };
+
+      window.spinStoryIdea = function () {
+        if (isSpinnerRunning) return;
+        isSpinnerRunning = true;
+
+        const btn = $('btn-spin-idea');
+        if (btn) btn.disabled = true;
+
+        let tick = 0;
+        const timer = setInterval(() => {
+          SoundEngine.spinTick(tick);
+          const h = spinnerBank.heroes[Math.floor(Math.random() * spinnerBank.heroes.length)];
+          const s = spinnerBank.settings[Math.floor(Math.random() * spinnerBank.settings.length)];
+          const e = spinnerBank.events[Math.floor(Math.random() * spinnerBank.events.length)];
+
+          if ($('spinner-hero')) $('spinner-hero').textContent = h;
+          if ($('spinner-setting')) $('spinner-setting').textContent = s;
+          if ($('spinner-event')) $('spinner-event').textContent = e;
+
+          latestSpunIdea = { hero: h, setting: s, event: e };
+          tick++;
+
+          if (tick >= 12) {
+            clearInterval(timer);
+            isSpinnerRunning = false;
+            if (btn) btn.disabled = false;
+            SoundEngine.correct();
+
+            if (!state.milestones.z2Spin) {
+              state.milestones.z2Spin = true;
+              rewardStars(5, 'Memutar Mesin Pemutar Ide Cerita!');
+            }
+          }
+        }, 70);
+      };
+
+      window.copyIdeaToStudio = function () {
+        SoundEngine.click();
+        const heroName = latestSpunIdea.hero.replace(/^[^\s]+\s/, '');
+        const settingName = latestSpunIdea.setting.replace(/^[^\s]+\s/, '');
+        const eventName = latestSpunIdea.event.replace(/^[^\s]+\s/, '');
+
+        const titleInp = $('story-title-input');
+        const contentTxt = $('story-content-textarea');
+
+        if (titleInp) {
+          titleInp.value = `Petualangan ${heroName} di ${settingName}`;
+        }
+        if (contentTxt) {
+          contentTxt.value = `Pada suatu pagi yang cerah dan sejuk, ${heroName} sedang menjelajah di ${settingName}. Tiba-tiba, ia mengalami peristiwa seru yaitu ${eventName.toLowerCase()}. Dengan sikap pemberani, ia pun mengamati petunjuk di sekitarnya...`;
+          contentTxt.focus();
+        }
+        window.updateWordCounter();
+        showToast('✨ Ide cerita berhasil disalin ke Studio Tulis Ceritaku!', 'info');
+      };
+
+      // Panduan Rumus ADIKSIMBA
+      const adiksimbaGuide = {
+        A: {
+          color: 'bg-rose-500 border-rose-700 text-white',
+          idle: 'bg-rose-100 hover:bg-rose-200 border-rose-300 text-rose-900',
+          html: '💡 <strong>Apa (Peristiwa Utama):</strong> Menanyakan kejadian apa yang dialami tokoh dalam cerita.<br/><em>Contoh Kalimat: "Kancil Cerdik menemukan sebuah peta harta karun berkilau di balik rak buku tua."</em>'
+        },
+        DI: {
+          color: 'bg-amber-500 border-amber-700 text-white',
+          idle: 'bg-amber-100 hover:bg-amber-200 border-amber-300 text-amber-900',
+          html: '🗺️ <strong>Di mana (Latar Tempat):</strong> Menanyakan lokasi atau tempat terjadinya peristiwa.<br/><em>Contoh Kalimat: "Kisah itu terjadi di Perpustakaan Awan yang melayang tinggi di langit biru."</em>'
+        },
+        K: {
+          color: 'bg-emerald-500 border-emerald-700 text-white',
+          idle: 'bg-emerald-100 hover:bg-emerald-200 border-emerald-300 text-emerald-900',
+          html: '⏰ <strong>Kapan (Latar Waktu):</strong> Menanyakan waktu kejadian (pagi, siang, sore, malam, atau musim tertentu).<br/><em>Contoh Kalimat: "Pada suatu pagi yang sejuk setelah hujan reda, pelangi muncul di atas desa."</em>'
+        },
+        SI: {
+          color: 'bg-sky-500 border-sky-700 text-white',
+          idle: 'bg-sky-100 hover:bg-sky-200 border-sky-300 text-sky-900',
+          html: '🦸 <strong>Siapa (Tokoh Cerita):</strong> Menanyakan tokoh utama dan tokoh pendamping yang terlibat.<br/><em>Contoh Kalimat: "Robot Penjaga Hutan yang ramah ditemani oleh seekor burung hantu kecil."</em>'
+        },
+        M: {
+          color: 'bg-indigo-500 border-indigo-700 text-white',
+          idle: 'bg-indigo-100 hover:bg-indigo-200 border-indigo-300 text-indigo-900',
+          html: '❓ <strong>Mengapa (Sebab Kejadian):</strong> Menanyakan alasan mengapa peristiwa atau masalah itu muncul.<br/><em>Contoh Kalimat: "Pohon tua di tengah taman mulai layu karena sumber mata airnya tertutup batu besar."</em>'
+        },
+        BA: {
+          color: 'bg-purple-500 border-purple-700 text-white',
+          idle: 'bg-purple-100 hover:bg-purple-200 border-purple-300 text-purple-900',
+          html: '✨ <strong>Bagaimana (Proses &amp; Penyelesaian):</strong> Menanyakan cara tokoh memecahkan masalah hingga akhir cerita.<br/><em>Contoh Kalimat: "Dengan bekerja sama dan berpikir cerdik, mereka berhasil memindahkan batu itu hingga air kembali mengalir."</em>'
+        }
+      };
+
+      window.selectAdiksimba = function (key) {
+        SoundEngine.click();
+        Object.keys(adiksimbaGuide).forEach((k) => {
+          const btn = $(`adik-btn-${k}`);
+          if (!btn) return;
+          if (k === key) {
+            btn.className = `adik-btn btn-game ${adiksimbaGuide[k].color} p-3 rounded-2xl text-center`;
+          } else {
+            btn.className = `adik-btn btn-game ${adiksimbaGuide[k].idle} p-3 rounded-2xl text-center`;
+          }
+        });
+        const box = $('adiksimba-box');
+        if (box && adiksimbaGuide[key]) {
+          box.innerHTML = adiksimbaGuide[key].html;
+        }
+      };
+
+      // Kosakata Ajaib & Penghitung Kata
+      window.insertMagicChip = function (word) {
+        SoundEngine.click();
+        const textarea = $('story-content-textarea');
+        if (!textarea) return;
+
+        try {
+          const start = typeof textarea.selectionStart === 'number' ? textarea.selectionStart : textarea.value.length;
+          const end = typeof textarea.selectionEnd === 'number' ? textarea.selectionEnd : textarea.value.length;
+          const before = textarea.value.slice(0, start);
+          const after = textarea.value.slice(end);
+          const leadSpace = before.length > 0 && !/\s$/.test(before) ? ' ' : '';
+          const trailSpace = after.length > 0 && !/^\s/.test(after) ? ' ' : ' ';
+
+          const inserted = `${leadSpace}${word}${trailSpace}`;
+          textarea.value = before + inserted + after;
+          const newPos = before.length + inserted.length;
+          textarea.focus();
+          textarea.setSelectionRange(newPos, newPos);
+        } catch (err) {
+          const sep = textarea.value.length > 0 && !textarea.value.endsWith(' ') ? ' ' : '';
+          textarea.value += `${sep}${word} `;
+          textarea.focus();
+        }
+
+        window.updateWordCounter();
+        showToast(`🪄 Kata "${word}" disisipkan ke ceritamu!`, 'info');
+      };
+
+      window.updateWordCounter = function () {
+        const t = $('story-title-input') ? $('story-title-input').value : '';
+        const c = $('story-content-textarea') ? $('story-content-textarea').value : '';
+        const combined = `${t} ${c}`.trim();
+        const count = combined ? combined.split(/\s+/).length : 0;
+        if ($('story-word-count')) {
+          $('story-word-count').textContent = `📊 ${count} Kata`;
+        }
+        return count;
+      };
+
+      window.handleSelfEditChecklist = function () {
+        SoundEngine.click();
+        const checks = Array.from(document.querySelectorAll('.sunting-check'));
+        const checkedCount = checks.filter((cb) => cb.checked).length;
+
+        if ($('checklist-badge')) {
+          $('checklist-badge').textContent = `${checkedCount} / 4 Tercentang`;
+        }
+
+        if (checkedCount === 4 && !state.milestones.z2Checklist) {
+          state.milestones.z2Checklist = true;
+          SoundEngine.correct();
+          rewardStars(5, 'Melengkapi Checklist Sunting Mandiri!');
+        }
+      };
+
+      window.publishStoryCard = function () {
+        const titleEl = $('story-title-input');
+        const authorEl = $('story-author-input');
+        const contentEl = $('story-content-textarea');
+        const themeEl = $('story-theme-select');
+
+        const title = titleEl ? titleEl.value.trim() : '';
+        const author = authorEl && authorEl.value.trim() ? authorEl.value.trim() : state.studentName;
+        const body = contentEl ? contentEl.value.trim() : '';
+        const themeKey = themeEl ? themeEl.value : 'forest';
+
+        if (!title || !body) {
+          SoundEngine.wrong();
+          showToast('Isi Judul Cerita dan Isi Cerita terlebih dahulu ya sebelum menerbitkan! ✍️', 'warning');
+          return;
+        }
+
+        const themes = {
+          forest: { icon: '🌲', label: 'Hutan Ajaib', grad: 'from-emerald-500 to-teal-700' },
+          space: { icon: '🚀', label: 'Luar Angkasa', grad: 'from-indigo-500 to-purple-700' },
+          ocean: { icon: '🐠', label: 'Laut Biru', grad: 'from-sky-500 to-blue-700' },
+          rainbow: { icon: '🏰', label: 'Kastil Pelangi', grad: 'from-pink-500 to-amber-500' }
+        };
+        const chosen = themes[themeKey] || themes.forest;
+
+        const illu = $('story-card-illustration');
+        if (illu) {
+          illu.className = `w-24 h-28 rounded-2xl bg-gradient-to-br ${chosen.grad} text-white flex flex-col items-center justify-center shadow-lg border-4 border-white shrink-0`;
+          illu.innerHTML = `<span class="text-4xl">${chosen.icon}</span><span class="text-[9px] font-black uppercase tracking-widest mt-1">${chosen.label}</span>`;
+        }
+
+        const todayStr = new Date().toLocaleDateString('id-ID', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
+
+        if ($('out-story-title')) $('out-story-title').textContent = title;
+        if ($('out-story-author')) $('out-story-author').textContent = author;
+        if ($('out-story-date')) $('out-story-date').textContent = todayStr;
+        if ($('out-story-body')) $('out-story-body').textContent = body;
+
+        const wrapper = $('published-story-wrapper');
+        if (wrapper) {
+          wrapper.classList.remove('hidden');
+          wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        SoundEngine.celebrate();
+        fireConfetti();
+
+        if (!state.milestones.z2Publish) {
+          state.milestones.z2Publish = true;
+          rewardStars(30, 'Menerbitkan Kartu Buku Cerita Bergambar!');
+        } else {
+          showToast('Kartu Buku Cerita berhasil diperbarui! 📖', 'success');
+        }
+      };
+
+      // =====================================================================
+      // 6. ZONA 3: TAMAN SASTRA CERIA (TEKA-TEKI PANTUN & CEK RIMA OTOMATIS)
+      // =====================================================================
+      const pantunRiddles = [
+        {
+          lines: [
+            'Berakit-rakit ke hulu,',
+            'Berenang-renang ke tepian.',
+            'Bersakit-sakit dahulu,',
+            '........................................ (rima: -an)'
+          ],
+          options: [
+            'Bersenang-senang kemudian.',
+            'Rajin membaca setiap hari.',
+            'Jangan lupa makan durian.'
+          ],
+          correct: 0,
+          explain: 'Benar! "kemudian" berakhiran (-an), cocok dengan baris ke-2 "tepian" (-an).'
+        },
+        {
+          lines: [
+            'Pergi ke pasar membeli salak,',
+            'Pulangnya membawa buah pepaya.',
+            'Jadi anak janganlah galak,',
+            '........................................ (rima: -ya)'
+          ],
+          options: [
+            'Agar disayang teman semua.',
+            'Supaya banyak teman percaya.',
+            'Mari bermain di tepi telaga.'
+          ],
+          correct: 1,
+          explain: 'Tepat sekali! Kata "percaya" berima (-ya) sama seperti "pepaya" pada baris ke-2.'
+        },
+        {
+          lines: [
+            'Jalan-jalan ke pulau Bali,',
+            'Melihat ombak di tepi pantai.',
+            'Jika rajin membaca setiap hari,',
+            '........................................ (rima: -ai)'
+          ],
+          options: [
+            'Pasti ilmumu semakin pandai.',
+            'Jangan lupa membeli roti.',
+            'Kita bernyanyi riang gembira.'
+          ],
+          correct: 0,
+          explain: 'Sempurna! "pandai" (-ai) bersajak silang dengan "pantai" (-ai) pada baris ke-2.'
+        }
+      ];
+
+      let riddleIndex = 0;
+      let riddleLocked = false;
+
+      function renderPantunRiddle() {
+        const item = pantunRiddles[riddleIndex];
+        if (!item) return;
+
+        if ($('pantun-quiz-progress')) {
+          $('pantun-quiz-progress').textContent = `Soal ${riddleIndex + 1} dari ${pantunRiddles.length}`;
+        }
+
+        const linesBox = $('pantun-riddle-lines');
+        if (linesBox) {
+          linesBox.innerHTML = item.lines
+            .map((line, i) => {
+              const blank = line.includes('....');
+              return `<p class="${blank ? 'text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-dashed border-amber-400' : ''}">${i + 1}. ${line}</p>`;
+            })
+            .join('');
+        }
+
+        const optsBox = $('pantun-riddle-options');
+        if (optsBox) {
+          optsBox.innerHTML = item.options
+            .map(
+              (opt, idx) => `
+              <button type="button" onclick="answerPantunRiddle(${idx})" class="riddle-opt btn-game bg-white hover:bg-emerald-100 border-emerald-300 text-slate-800 font-bold p-3.5 rounded-2xl text-xs sm:text-sm text-left shadow-sm">
+                ${String.fromCharCode(65 + idx)}. ${opt}
+              </button>
+            `
+            )
+            .join('');
+        }
+
+        if ($('pantun-riddle-feedback')) $('pantun-riddle-feedback').classList.add('hidden');
+        riddleLocked = false;
+      }
+
+      window.answerPantunRiddle = function (chosen) {
+        if (riddleLocked) return;
+        const item = pantunRiddles[riddleIndex];
+        const fb = $('pantun-riddle-feedback');
+        const btns = document.querySelectorAll('.riddle-opt');
+
+        if (chosen === item.correct) {
+          riddleLocked = true;
+          SoundEngine.correct();
+          if (btns[chosen]) {
+            btns[chosen].classList.remove('bg-white', 'border-emerald-300');
+            btns[chosen].classList.add('bg-emerald-500', 'border-emerald-700', 'text-white');
+          }
+          const isLast = riddleIndex === pantunRiddles.length - 1;
+          if (fb) {
+            fb.className = 'rounded-xl p-3.5 text-xs sm:text-sm font-bold bg-emerald-100 text-emerald-950 border border-emerald-300 flex flex-col sm:flex-row sm:items-center justify-between gap-2';
+            fb.innerHTML = `
+              <span>✅ ${item.explain}</span>
+              <button type="button" onclick="nextPantunRiddle()" class="btn-game bg-emerald-600 border-emerald-800 text-white px-4 py-1.5 rounded-xl text-xs shrink-0">
+                ${isLast ? '🎉 Selesai!' : 'Soal Berikutnya →'}
+              </button>
+            `;
+            fb.classList.remove('hidden');
+          }
+        } else {
+          SoundEngine.wrong();
+          if (btns[chosen]) {
+            btns[chosen].classList.add('bg-rose-100', 'border-rose-400', 'text-rose-900');
+          }
+          if (fb) {
+            fb.className = 'rounded-xl p-3 text-xs sm:text-sm font-bold bg-rose-100 text-rose-900 border border-rose-300';
+            fb.textContent = '❌ Bunyi akhir barisnya belum sesuai dengan rima pantun. Coba pilih jawaban lain ya!';
+            fb.classList.remove('hidden');
+          }
+        }
+      };
+
+      window.nextPantunRiddle = function () {
+        SoundEngine.click();
+        if (riddleIndex < pantunRiddles.length - 1) {
+          riddleIndex++;
+          renderPantunRiddle();
+        } else {
+          SoundEngine.celebrate();
+          fireConfetti();
+          if (!state.milestones.z3Riddle) {
+            state.milestones.z3Riddle = true;
+            rewardStars(15, 'Menuntaskan Permainan Teka-Teki Sajak Pantun!');
+          } else {
+            showToast('Hebat! Semua Teka-Teki Sajak Pantun berhasil dipecahkan! 🎉', 'success');
+          }
+          riddleIndex = 0;
+          renderPantunRiddle();
+        }
+      };
+
+      // Mode Panggung Karya Sastraku & Cek Rima Pantun Otomatis
+      let currentLitMode = 'pantun';
+
+      window.setLiteratureMode = function (mode) {
+        SoundEngine.click();
+        currentLitMode = mode;
+        const pPanel = $('panel-mode-pantun');
+        const mPanel = $('panel-mode-puisi');
+        const pBtn = $('mode-btn-pantun');
+        const mBtn = $('mode-btn-puisi');
+
+        if (mode === 'pantun') {
+          if (pPanel) pPanel.classList.remove('hidden');
+          if (mPanel) mPanel.classList.add('hidden');
+          if (pBtn) pBtn.className = 'btn-game bg-emerald-600 border-emerald-800 text-white text-xs font-extrabold px-4 py-2 rounded-xl';
+          if (mBtn) mBtn.className = 'btn-game bg-slate-100 border-slate-300 text-slate-700 text-xs font-extrabold px-4 py-2 rounded-xl';
+        } else {
+          if (pPanel) pPanel.classList.add('hidden');
+          if (mPanel) mPanel.classList.remove('hidden');
+          if (mBtn) mBtn.className = 'btn-game bg-teal-600 border-teal-800 text-white text-xs font-extrabold px-4 py-2 rounded-xl';
+          if (pBtn) pBtn.className = 'btn-game bg-slate-100 border-slate-300 text-slate-700 text-xs font-extrabold px-4 py-2 rounded-xl';
+        }
+      };
+
+      function extractEndingPattern(line) {
+        const clean = line.trim().replace(/[.,!?;:'"()\-]+$/g, '').toLowerCase();
+        if (!clean) return { end2: '', lastVowel: '' };
+        const end2 = clean.slice(-2);
+        const vowels = clean.match(/[aiueo]/g);
+        const lastVowel = vowels && vowels.length > 0 ? vowels[vowels.length - 1] : end2.slice(-1);
+        return { end2, lastVowel };
+      }
+
+      window.checkPantunRhymeAuto = function () {
+        const l1 = $('p-line-1') ? $('p-line-1').value.trim() : '';
+        const l2 = $('p-line-2') ? $('p-line-2').value.trim() : '';
+        const l3 = $('p-line-3') ? $('p-line-3').value.trim() : '';
+        const l4 = $('p-line-4') ? $('p-line-4').value.trim() : '';
+        const fb = $('rhyme-auto-feedback');
+
+        if (!l1 || !l2 || !l3 || !l4) {
+          SoundEngine.wrong();
+          showToast('Isi keempat baris pantun dulu sebelum mengecek rima ya! 🎶', 'warning');
+          return;
+        }
+
+        const r1 = extractEndingPattern(l1);
+        const r2 = extractEndingPattern(l2);
+        const r3 = extractEndingPattern(l3);
+        const r4 = extractEndingPattern(l4);
+
+        const match13 = r1.end2 === r3.end2 || r1.lastVowel === r3.lastVowel;
+        const match24 = r2.end2 === r4.end2 || r2.lastVowel === r4.lastVowel;
+
+        if (!fb) return;
+
+        if (match13 && match24) {
+          SoundEngine.correct();
+          fb.className = 'rounded-xl p-3.5 text-xs sm:text-sm font-bold bg-emerald-100 border border-emerald-400 text-emerald-950';
+          fb.innerHTML = `✨ <strong>Rima Pantun Bagus Sekali (a-b-a-b)!</strong><br/>Baris 1 (-${r1.end2}) berima dengan Baris 3 (-${r3.end2}), dan Baris 2 (-${r2.end2}) berima dengan Baris 4 (-${r4.end2}).`;
+        } else {
+          SoundEngine.wrong();
+          const tips = [];
+          if (!match13) tips.push(`Baris 1 (-${r1.end2}) & Baris 3 (-${r3.end2}) belum serima`);
+          if (!match24) tips.push(`Baris 2 (-${r2.end2}) & Baris 4 (-${r4.end2}) belum serima`);
+          fb.className = 'rounded-xl p-3.5 text-xs sm:text-sm font-bold bg-amber-100 border border-amber-400 text-amber-950';
+          fb.innerHTML = `💡 <strong>Ayo Sempurnakan Rimanya:</strong> ${tips.join(' dan ')}. Coba samakan bunyi akhir kata pada pasangan baris tersebut ya!`;
+        }
+        fb.classList.remove('hidden');
+      };
+
+      window.createLiteraturePoster = function () {
+        const frameKey = $('poster-frame-select') ? $('poster-frame-select').value : 'garden';
+        let titleText = 'Pantun Karya Anak';
+        let badgeText = 'Karya Pantun';
+        let lines = [];
+
+        if (currentLitMode === 'pantun') {
+          const l1 = $('p-line-1') ? $('p-line-1').value.trim() : '';
+          const l2 = $('p-line-2') ? $('p-line-2').value.trim() : '';
+          const l3 = $('p-line-3') ? $('p-line-3').value.trim() : '';
+          const l4 = $('p-line-4') ? $('p-line-4').value.trim() : '';
+          if (!l1 || !l2 || !l3 || !l4) {
+            SoundEngine.wrong();
+            showToast('Lengkapi 4 baris pantunmu terlebih dahulu ya! 🎶', 'warning');
+            return;
+          }
+          lines = [l1, l2, l3, l4];
+        } else {
+          const pTitle = $('poem-title-input') ? $('poem-title-input').value.trim() : '';
+          const pBody = $('poem-body-textarea') ? $('poem-body-textarea').value.trim() : '';
+          if (!pTitle || !pBody) {
+            SoundEngine.wrong();
+            showToast('Tulis Judul Puisi dan Bait Puisimu terlebih dahulu ya! 🌸', 'warning');
+            return;
+          }
+          titleText = `"${pTitle}"`;
+          badgeText = 'Karya Puisi Anak';
+          lines = pBody.split('\n').map((s) => s.trim() || '&nbsp;');
+        }
+
+        const frames = {
+          garden: { deco: '🌻🦋🌼', cls: 'border-emerald-500 from-emerald-50 via-white to-amber-50', bg: 'bg-emerald-600' },
+          sunset: { deco: '🌅✨🕊️', cls: 'border-amber-500 from-amber-50 via-orange-50 to-rose-50', bg: 'bg-orange-600' },
+          ocean: { deco: '🐬🌊🐚', cls: 'border-sky-500 from-sky-50 via-cyan-50 to-indigo-50', bg: 'bg-sky-600' }
+        };
+        const fr = frames[frameKey] || frames.garden;
+
+        const card = $('lit-poster-card');
+        if (card) {
+          card.className = `printable-area max-w-xl mx-auto rounded-3xl p-7 sm:p-9 border-8 border-double bg-gradient-to-b text-center shadow-2xl ${fr.cls}`;
+        }
+        if ($('lit-poster-deco')) $('lit-poster-deco').textContent = fr.deco;
+        if ($('lit-poster-badge')) {
+          $('lit-poster-badge').textContent = badgeText;
+          $('lit-poster-badge').className = `inline-block ${fr.bg} text-white text-xs font-extrabold px-3.5 py-1 rounded-full uppercase`;
+        }
+        if ($('lit-poster-title')) $('lit-poster-title').textContent = titleText;
+        if ($('lit-poster-content')) {
+          $('lit-poster-content').innerHTML = lines.map((l) => `<p>${l}</p>`).join('');
+        }
+        if ($('lit-poster-author')) $('lit-poster-author').textContent = state.studentName;
+
+        const wrap = $('lit-poster-wrapper');
+        if (wrap) {
+          wrap.classList.remove('hidden');
+          wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        SoundEngine.celebrate();
+        fireConfetti();
+
+        if (!state.milestones.z3Poster) {
+          state.milestones.z3Poster = true;
+          rewardStars(25, 'Membuat Poster Karya Sastra!');
+        } else {
+          showToast('Poster Karya Sastramu berhasil diperbarui! 🎨', 'success');
+        }
+      };
+
+      // =====================================================================
+      // 7. ZONA 4: ARENA TANTANGAN BINTANG (10 SOAL KUIS EVALUASI)
+      // =====================================================================
+      const evalQuestions = [
+        {
+          main: 'Bagaimana cara membuat cerita yang menarik dalam kegiatan menulis kreatif?',
+          quote: null,
+          sub: null,
+          options: [
+            'Menulis cerita tanpa memikirkan isinya',
+            'Menggunakan ide dan imajinasi sendiri dalam membuat cerita',
+            'Menyalin cerita milik teman',
+            'Menulis tanpa memperhatikan urutan cerita'
+          ],
+          correct: 1,
+          explain: 'Menggunakan ide dan imajinasi sendiri menghasilkan cerita yang asli, kreatif, dan menarik dibaca.'
+        },
+        {
+          main: 'Mengapa kita perlu membaca kembali tulisan setelah selesai membuat cerita?',
+          quote: null,
+          sub: null,
+          options: [
+            'Agar tulisan menjadi lebih panjang',
+            'Agar bisa menyalin tulisan orang lain',
+            'Agar dapat mengetahui dan memperbaiki kesalahan dalam tulisan',
+            'Agar tidak perlu membuat cerita lagi'
+          ],
+          correct: 2,
+          explain: 'Membaca kembali (menyunting) membantu kita menemukan dan memperbaiki kesalahan ejaan, tanda baca, dan kalimat.'
+        },
+        {
+          main: 'Perhatikan penggalan puisi berikut!',
+          quote: 'Angin berhembus pelan menyapa daun,\nMatahari pagi tersenyum ramah.',
+          sub: 'Kata "tersenyum ramah" pada puisi di atas menggambarkan suasana pagi yang...',
+          options: [
+            'Menakutkan dan gelap',
+            'Cerah dan menyenangkan',
+            'Dingin dan berbadai',
+            'Sepi dan menyedihkan'
+          ],
+          correct: 1,
+          explain: 'Ungkapan "tersenyum ramah" menggambarkan suasana pagi yang cerah, hangat, dan menyenangkan.'
+        },
+        {
+          main: 'Apa yang dimaksud dengan menulis kreatif?',
+          quote: null,
+          sub: null,
+          options: [
+            'Menulis dan menyalin seluruh tulisan orang lain',
+            'Proses menuangkan imajinasi menjadi tulisan',
+            'Menulis hanya menggunakan angka',
+            'Menulis tanpa menentukan tujuan'
+          ],
+          correct: 1,
+          explain: 'Menulis kreatif adalah proses menuangkan ide dan imajinasi menjadi sebuah karya tulisan.'
+        },
+        {
+          main: 'Perhatikan baris puisi berikut!',
+          quote: 'Bunga mawar mekar di taman,\nHarum wanginya semerbak ...',
+          sub: 'Kata yang paling tepat untuk melengkapi puisi di atas adalah...',
+          options: ['meja', 'sepatu', 'menawan', 'kursi'],
+          correct: 2,
+          explain: 'Kata "menawan" berima selaras dengan "taman" (-an) dan menggambarkan keindahan bunga mawar.'
+        },
+        {
+          main: 'Apa yang dimaksud dengan keterampilan menulis?',
+          quote: null,
+          sub: null,
+          options: [
+            'Kemampuan menyampaikan gagasan atau informasi dalam bentuk tulisan',
+            'Kemampuan menyampaikan cerita hanya dalam gerakan',
+            'Kemampuan mendengarkan informasi tanpa mencatat',
+            'Kemampuan membaca tulisan dengan suara keras'
+          ],
+          correct: 0,
+          explain: 'Keterampilan menulis adalah kemampuan menyampaikan gagasan, pikiran, atau informasi dalam bentuk tulisan.'
+        },
+        {
+          main: 'Hal yang dapat membantu mengembangkan ide saat menulis cerita adalah...',
+          quote: null,
+          sub: null,
+          options: [
+            'Mengabaikan tokoh dan latar cerita',
+            'Menggunakan pertanyaan ADIKSIMBA',
+            'Menulis kalimat secara acak',
+            'Menulis dengan tema yang tidak jelas'
+          ],
+          correct: 1,
+          explain: 'Pertanyaan ADIKSIMBA (Apa, Di mana, Kapan, Siapa, Mengapa, Bagaimana) membantu mengembangkan ide cerita secara runtut.'
+        },
+        {
+          main: 'Apa yang dimaksud dengan menulis sastra?',
+          quote: null,
+          sub: null,
+          options: [
+            'Menulis karya yang mengutamakan ungkapan perasaan, imajinasi, dan keindahan bahasa',
+            'Menulis daftar belanja sehari-hari saja',
+            'Menulis angka tanpa kata-kata',
+            'Menyalin informasi tanpa mengolahnya'
+          ],
+          correct: 0,
+          explain: 'Menulis sastra mengutamakan ungkapan perasaan, daya imajinasi, dan keindahan bahasa.'
+        },
+        {
+          main: 'Perhatikan pernyataan berikut!',
+          quote: 'Cerpen merupakan salah satu karya sastra yang menceritakan suatu kejadian atau pengalaman tokoh dalam bentuk cerita singkat. Cerpen biasanya memiliki tokoh, alur, dan pesan yang ingin disampaikan kepada pembaca.',
+          sub: 'Cerpen biasanya menceritakan ...',
+          options: [
+            'Kumpulan rumus matematika untuk membantu menyelesaikan soal berhitung.',
+            'Sebuah kisah atau kejadian yang disampaikan dalam bentuk cerita singkat.',
+            'Daftar barang yang harus dibeli ketika pergi ke pasar.',
+            'Langkah-langkah untuk menghitung angka dalam pelajaran matematika.'
+          ],
+          correct: 1,
+          explain: 'Cerpen menceritakan sebuah kisah atau kejadian tokoh dalam bentuk cerita singkat.'
+        },
+        {
+          main: 'Perhatikan pernyataan berikut!',
+          quote: 'Ketika menulis cerita, kita dapat menggunakan imajinasi untuk membayangkan tokoh, tempat, dan kejadian yang ingin diceritakan. Imajinasi membuat cerita menjadi lebih menarik dan kreatif.',
+          sub: 'Dalam menulis cerita, imajinasi berguna untuk ...',
+          options: [
+            'Membuat cerita menjadi lebih menarik dan kreatif.',
+            'Menghitung jumlah uang yang dimiliki.',
+            'Menghafalkan semua isi buku.',
+            'Menyalin cerita dari orang lain.'
+          ],
+          correct: 0,
+          explain: 'Imajinasi berguna untuk membuat cerita menjadi lebih menarik dan kreatif.'
+        }
+      ];
+
+      let z4Idx = 0;
+      let z4Score = 0;
+      let z4Answered = false;
+
+      window.startEvaluationQuiz = function () {
+        SoundEngine.click();
+        z4Idx = 0;
+        z4Score = 0;
+        z4Answered = false;
+
+        if ($('z4-start-box')) $('z4-start-box').classList.add('hidden');
+        if ($('z4-cert-wrapper')) $('z4-cert-wrapper').classList.add('hidden');
+        if ($('z4-quiz-box')) $('z4-quiz-box').classList.remove('hidden');
+        renderEvalQuestion();
+      };
+
+      function renderEvalQuestion() {
+        const q = evalQuestions[z4Idx];
+        if (!q) return;
+
+        if ($('z4-step-badge')) $('z4-step-badge').textContent = `Soal ${z4Idx + 1} dari ${evalQuestions.length}`;
+        if ($('z4-score-badge')) $('z4-score-badge').textContent = `Skor: ${z4Score} / 100`;
+        if ($('z4-progress-fill')) $('z4-progress-fill').style.width = `${((z4Idx + 1) / evalQuestions.length) * 100}%`;
+        if ($('z4-q-main')) $('z4-q-main').textContent = `${z4Idx + 1}. ${q.main}`;
+
+        const qWrap = $('z4-q-quote-wrap');
+        const qText = $('z4-q-quote');
+        if (qWrap && qText) {
+          if (q.quote) {
+            qText.innerHTML = q.quote.replace(/\n/g, '<br/>');
+            qWrap.classList.remove('hidden');
+          } else {
+            qWrap.classList.add('hidden');
+          }
+        }
+
+        const subEl = $('z4-q-sub');
+        if (subEl) {
+          if (q.sub) {
+            subEl.textContent = q.sub;
+            subEl.classList.remove('hidden');
+          } else {
+            subEl.classList.add('hidden');
+          }
+        }
+
+        const optList = $('z4-options-list');
+        if (optList) {
+          optList.innerHTML = q.options
+            .map(
+              (opt, idx) => `
+              <button type="button" onclick="pickEvalOption(${idx})" class="z4-opt-btn btn-game bg-white hover:bg-purple-50 border-purple-200 text-slate-800 font-bold p-4 rounded-2xl text-left text-xs sm:text-sm flex items-start gap-3 shadow-sm">
+                <span class="w-7 h-7 rounded-lg bg-purple-100 text-purple-800 font-black flex items-center justify-center shrink-0">${String.fromCharCode(65 + idx)}</span>
+                <span class="pt-0.5">${opt}</span>
+              </button>
+            `
+            )
+            .join('');
+        }
+
+        if ($('z4-feedback-panel')) $('z4-feedback-panel').classList.add('hidden');
+        z4Answered = false;
+      }
+
+      window.pickEvalOption = function (chosen) {
+        if (z4Answered) return;
+        z4Answered = true;
+
+        const q = evalQuestions[z4Idx];
+        const btns = document.querySelectorAll('.z4-opt-btn');
+        const panel = $('z4-feedback-panel');
+        const title = $('z4-fb-title');
+        const desc = $('z4-fb-desc');
+        const nextBtn = $('z4-next-btn');
+
+        btns.forEach((b) => b.classList.add('pointer-events-none'));
+
+        if (chosen === q.correct) {
+          SoundEngine.correct();
+          z4Score += 10;
+          if ($('z4-score-badge')) $('z4-score-badge').textContent = `Skor: ${z4Score} / 100`;
+          if (btns[chosen]) {
+            btns[chosen].classList.remove('bg-white', 'border-purple-200');
+            btns[chosen].classList.add('bg-emerald-500', 'border-emerald-700', 'text-white');
+          }
+          if (panel) panel.className = 'rounded-2xl p-4 border-2 border-emerald-300 bg-emerald-50 text-emerald-950 space-y-2 animate-pop-in';
+          if (title) title.textContent = '🎉 Jawabanmu Benar! (+10 Poin)';
+        } else {
+          SoundEngine.wrong();
+          if (btns[chosen]) {
+            btns[chosen].classList.remove('bg-white', 'border-purple-200');
+            btns[chosen].classList.add('bg-rose-500', 'border-rose-700', 'text-white');
+          }
+          if (btns[q.correct]) {
+            btns[q.correct].classList.remove('bg-white', 'border-purple-200');
+            btns[q.correct].classList.add('bg-emerald-500', 'border-emerald-700', 'text-white');
+          }
+          if (panel) panel.className = 'rounded-2xl p-4 border-2 border-amber-300 bg-amber-50 text-amber-950 space-y-2 animate-pop-in';
+          if (title) title.textContent = `💡 Kurang Tepat — Jawaban Benar: ${String.fromCharCode(65 + q.correct)}`;
+        }
+
+        if (desc) desc.textContent = q.explain;
+        if (nextBtn) {
+          nextBtn.textContent =
+            z4Idx === evalQuestions.length - 1
+              ? '🏆 Lihat Hasil & Sertifikat Kelulusan Digital!'
+              : 'Soal Berikutnya →';
+        }
+        if (panel) panel.classList.remove('hidden');
+      };
+
+      window.nextEvaluationQuestion = function () {
+        SoundEngine.click();
+        if (z4Idx < evalQuestions.length - 1) {
+          z4Idx++;
+          renderEvalQuestion();
+        } else {
+          completeEvaluationQuiz();
+        }
+      };
+
+      function completeEvaluationQuiz() {
+        SoundEngine.celebrate();
+        fireConfetti();
+
+        if (z4Score > state.z4BestStars) {
+          const bonus = z4Score - state.z4BestStars;
+          state.z4BestStars = z4Score;
+          state.milestones.z4Quiz = true;
+          rewardStars(bonus, 'Menyelesaikan Evaluasi Tantangan Bintang!');
+        } else {
+          state.milestones.z4Quiz = true;
+          refreshHeaderUI();
+        }
+
+        let pred = 'Sangat Memuaskan';
+        if (z4Score < 60) pred = 'Terus Berlatih';
+        else if (z4Score < 80) pred = 'Baik Sekali';
+        else if (z4Score < 100) pred = 'Hebat & Cerdas';
+
+        const today = new Date().toLocaleDateString('id-ID', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
+
+        if ($('z4-final-score')) $('z4-final-score').textContent = String(z4Score);
+        if ($('z4-final-pred')) $('z4-final-pred').textContent = pred;
+        if ($('cert-avatar-out')) $('cert-avatar-out').textContent = state.avatar;
+        if ($('cert-name-out')) $('cert-name-out').textContent = state.studentName;
+        if ($('cert-rank-out')) $('cert-rank-out').textContent = getRankTitle(state.stars);
+        if ($('cert-stars-out')) $('cert-stars-out').textContent = `${state.stars} ⭐`;
+        if ($('cert-score-out')) $('cert-score-out').textContent = `${z4Score} / 100`;
+        if ($('cert-pred-out')) $('cert-pred-out').textContent = pred;
+        if ($('cert-date-out')) $('cert-date-out').textContent = today;
+
+        if ($('z4-quiz-box')) $('z4-quiz-box').classList.add('hidden');
+        const certWrap = $('z4-cert-wrapper');
+        if (certWrap) {
+          certWrap.classList.remove('hidden');
+          certWrap.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+
+      // =====================================================================
+      // 8. ZONA 5: DETEKTIF KATA AJAIB (12 KASUS RAHASIA)
+      // =====================================================================
+      const solvedCases = new Set();
+
+      function markCaseSolved(caseNum) {
+        if (solvedCases.has(caseNum)) return;
+        solvedCases.add(caseNum);
+        SoundEngine.correct();
+        rewardStars(5, `Kasus Detektif #${caseNum} Terpecahkan!`);
+
+        const total = solvedCases.size;
+        if ($('detective-cases-counter')) {
+          $('detective-cases-counter').textContent = `${total} / 12 Kasus Terpecahkan`;
+        }
+        if ($('detective-progress-bar')) {
+          $('detective-progress-bar').style.width = `${Math.round((total / 12) * 100)}%`;
+        }
+
+        let rankText = '🔰 Detektif Magang';
+        if (total >= 12) rankText = '🎖️ Kepala Detektif Kata';
+        else if (total >= 6) rankText = '🕵️ Detektif Andal';
+
+        if ($('detective-rank-label')) {
+          $('detective-rank-label').textContent = rankText;
+        }
+
+        if (total === 12) {
+          state.milestones.z5Detective = true;
+          refreshHeaderUI();
+          SoundEngine.celebrate();
+          fireConfetti();
+          if ($('detective-award-name')) $('detective-award-name').textContent = state.studentName;
+          const award = $('detective-badge-award');
+          if (award) {
+            award.classList.remove('hidden');
+            award.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+      }
+
+      // Misi 1: Siapa Aku? (Kasus 1-3)
+      const misi1Data = [
+        {
+          id: 1,
+          clue: 'Aku memiliki halaman, berisi tulisan dan gambar. Kamu bisa membacaku untuk mendapatkan ilmu. Siapakah aku?',
+          options: ['Sepatu', 'Buku', 'Piring', 'Tas'],
+          correct: 1
+        },
+        {
+          id: 2,
+          clue: 'Aku memiliki empat kaki, tetapi tidak bisa berjalan. Kamu menggunakanku untuk duduk. Siapakah aku?',
+          options: ['Meja', 'Lemari', 'Kursi', 'Pintu'],
+          correct: 2
+        },
+        {
+          id: 3,
+          clue: 'Aku selalu muncul setelah hujan dan memiliki banyak warna yang indah. Siapakah aku?',
+          options: ['Pelangi', 'Matahari', 'Bintang', 'Bulan'],
+          correct: 0
+        }
+      ];
+
+      function initMisi1() {
+        const container = $('misi1-container');
+        if (!container) return;
+
+        container.innerHTML = misi1Data
+          .map(
+            (q) => `
+            <div class="bg-sky-50/70 border-2 border-sky-200 rounded-2xl p-4 flex flex-col justify-between space-y-3">
+              <div>
+                <span class="text-[11px] font-extrabold bg-sky-600 text-white px-2.5 py-0.5 rounded-full">Kasus #${q.id}</span>
+                <p class="text-xs sm:text-sm font-bold text-slate-800 mt-2 leading-relaxed">${q.id}. ${q.clue}</p>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                ${q.options
+                  .map(
+                    (opt, idx) => `
+                    <button type="button" onclick="checkMisi1(${q.id}, ${idx}, this)" class="m1-btn-${q.id} btn-game bg-white hover:bg-sky-100 border-sky-300 text-slate-800 text-xs font-extrabold py-2 px-2.5 rounded-xl text-left">
+                      ${String.fromCharCode(65 + idx)}. ${opt}
+                    </button>
+                  `
+                  )
+                  .join('')}
+              </div>
+              <p id="m1-fb-${q.id}" class="text-xs font-extrabold hidden"></p>
+            </div>
+          `
+          )
+          .join('');
+      }
+
+      window.checkMisi1 = function (caseId, chosenIdx, btnEl) {
+        const item = misi1Data.find((x) => x.id === caseId);
+        if (!item) return;
+        const fb = $(`m1-fb-${caseId}`);
+
+        if (chosenIdx === item.correct) {
+          document.querySelectorAll(`.m1-btn-${caseId}`).forEach((b) => b.classList.add('pointer-events-none'));
+          if (btnEl) {
+            btnEl.classList.remove('bg-white', 'border-sky-300');
+            btnEl.classList.add('bg-emerald-500', 'border-emerald-700', 'text-white');
+          }
+          if (fb) {
+            fb.textContent = `✅ Benar! Jawabannya adalah ${item.options[item.correct]}!`;
+            fb.className = 'text-xs font-extrabold text-emerald-700';
+          }
+          markCaseSolved(caseId);
+        } else {
+          SoundEngine.wrong();
+          if (btnEl) btnEl.classList.add('bg-rose-100', 'border-rose-400', 'text-rose-900');
+          if (fb) {
+            fb.textContent = '❌ Belum tepat detektif! Baca petunjuknya sekali lagi.';
+            fb.className = 'text-xs font-extrabold text-rose-600';
+          }
+        }
+      };
+
+      // Misi 2: Susun Huruf Rahasia (Kasus 4-6)
+      const misi2Data = [
+        { id: 4, letters: ['U', 'K', 'B', 'U'], answer: 'BUKU' },
+        { id: 5, letters: ['J', 'A', 'L', 'A', 'B', 'E', 'R'], answer: 'BELAJAR' },
+        { id: 6, letters: ['K', 'E', 'S', 'O', 'L', 'A', 'H'], answer: 'SEKOLAH' }
+      ];
+      const misi2Built = { 4: [], 5: [], 6: [] };
+
+      function initMisi2() {
+        const container = $('misi2-container');
+        if (!container) return;
+
+        container.innerHTML = misi2Data
+          .map(
+            (q) => `
+            <div class="bg-amber-50/70 border-2 border-amber-200 rounded-2xl p-4 flex flex-col justify-between space-y-3">
+              <div>
+                <span class="text-[11px] font-extrabold bg-amber-600 text-white px-2.5 py-0.5 rounded-full">Kasus #${q.id}</span>
+                <p class="text-xs sm:text-sm font-extrabold text-slate-800 mt-2">${q.id}. ${q.letters.join(' – ')} = ....</p>
+              </div>
+
+              <!-- Kotak Hasil Susunan -->
+              <div id="m2-display-${q.id}" class="min-h-[42px] bg-white border-2 border-dashed border-amber-400 rounded-xl px-3 py-2 flex flex-wrap items-center justify-center gap-1.5 font-display text-lg font-bold text-amber-900 tracking-widest">
+                <span class="text-xs font-body text-slate-400 font-semibold">Klik huruf di bawah...</span>
+              </div>
+
+              <!-- Ubin Huruf -->
+              <div class="flex flex-wrap justify-center gap-1.5">
+                ${q.letters
+                  .map(
+                    (ch, idx) => `
+                    <button type="button" id="m2-tile-${q.id}-${idx}" onclick="pickMisi2Tile(${q.id}, ${idx}, '${ch}')" class="btn-game bg-amber-400 hover:bg-amber-300 border-amber-600 text-amber-950 font-black w-9 h-9 rounded-xl text-sm shadow-xs">
+                      ${ch}
+                    </button>
+                  `
+                  )
+                  .join('')}
+              </div>
+
+              <div class="flex items-center justify-between gap-2 pt-1">
+                <button type="button" onclick="resetMisi2(${q.id})" class="text-xs font-extrabold text-slate-600 hover:text-rose-600 bg-white border border-slate-300 px-3 py-1.5 rounded-xl">
+                  🔄 Ulangi
+                </button>
+                <button type="button" onclick="verifyMisi2(${q.id})" class="btn-game bg-emerald-500 border-emerald-700 text-white text-xs font-extrabold px-4 py-1.5 rounded-xl">
+                  ✅ Periksa
+                </button>
+              </div>
+              <p id="m2-fb-${q.id}" class="text-xs font-extrabold hidden"></p>
+            </div>
+          `
+          )
+          .join('');
+      }
+
+      window.pickMisi2Tile = function (caseId, tileIdx, char) {
+        if (solvedCases.has(caseId)) return;
+        SoundEngine.click();
+        const tile = $(`m2-tile-${caseId}-${tileIdx}`);
+        if (tile) tile.classList.add('opacity-35', 'pointer-events-none');
+
+        misi2Built[caseId].push(char);
+        const disp = $(`m2-display-${caseId}`);
+        if (disp) {
+          disp.textContent = misi2Built[caseId].join('');
+        }
+      };
+
+      window.resetMisi2 = function (caseId) {
+        if (solvedCases.has(caseId)) return;
+        SoundEngine.click();
+        misi2Built[caseId] = [];
+        const item = misi2Data.find((x) => x.id === caseId);
+        if (item) {
+          item.letters.forEach((_, idx) => {
+            const tile = $(`m2-tile-${caseId}-${idx}`);
+            if (tile) tile.classList.remove('opacity-35', 'pointer-events-none');
+          });
+        }
+        const disp = $(`m2-display-${caseId}`);
+        if (disp) {
+          disp.innerHTML = '<span class="text-xs font-body text-slate-400 font-semibold">Klik huruf di bawah...</span>';
+        }
+        const fb = $(`m2-fb-${caseId}`);
+        if (fb) fb.classList.add('hidden');
+      };
+
+      window.verifyMisi2 = function (caseId) {
+        if (solvedCases.has(caseId)) return;
+        const item = misi2Data.find((x) => x.id === caseId);
+        if (!item) return;
+
+        const word = misi2Built[caseId].join('');
+        const fb = $(`m2-fb-${caseId}`);
+
+        if (word === item.answer) {
+          if (fb) {
+            fb.textContent = `✅ Tepat! Kata rahasianya adalah ${item.answer}!`;
+            fb.className = 'text-xs font-extrabold text-emerald-700';
+          }
+          markCaseSolved(caseId);
+        } else {
+          SoundEngine.wrong();
+          if (fb) {
+            fb.textContent = `❌ Susunan "${word || '...'}" belum tepat. Klik Ulangi dan susun lagi ya!`;
+            fb.className = 'text-xs font-extrabold text-rose-600';
+          }
+        }
+      };
+
+      // Misi 3: Cari Kata Tersembunyi (Kasus 7-9 + Papan Sandi 9x9)
+      const cipherRows = [
+        'K U C I N G B M R',
+        'A L P S T D W Q X',
+        'P E N G H A P U S',
+        'M N B V C X Z L K',
+        'K O L A M J H G F',
+        'R T Y U I O P A S',
+        'D F G H J K L Z X',
+        'C V B N M Q W E R',
+        'T Y U I O P A S D'
+      ];
+
+      const misi3Data = [
+        {
+          id: 7,
+          clue: 'Aku adalah hewan yang suka mengeong dan memiliki kumis. Siapakah aku?',
+          answer: 'KUCING',
+          magnifier: '🔍 Petunjuk Kaca Pembesar: Terdiri dari 6 huruf, diawali huruf K dan berada di baris ke-1 Papan Sandi!'
+        },
+        {
+          id: 8,
+          clue: 'Aku adalah tempat tinggal ikan dan memiliki banyak air. Apakah aku?',
+          answer: 'KOLAM',
+          magnifier: '🔍 Petunjuk Kaca Pembesar: Terdiri dari 5 huruf, diawali huruf K dan berada di baris ke-5 Papan Sandi!'
+        },
+        {
+          id: 9,
+          clue: 'Aku digunakan untuk menghapus tulisan pensil yang salah. Apakah aku?',
+          answer: 'PENGHAPUS',
+          magnifier: '🔍 Petunjuk Kaca Pembesar: Terdiri dari 9 huruf, diawali huruf P dan memenuhi baris ke-3 Papan Sandi!'
+        }
+      ];
+
+      function initMisi3() {
+        const gridEl = $('cipher-grid-9x9');
+        if (gridEl) {
+          const cells = [];
+          cipherRows.forEach((rowStr, rIdx) => {
+            rowStr.split(' ').forEach((letter, cIdx) => {
+              cells.push(`
+                <button type="button" onclick="toggleCipherCell(this)" data-pos="${rIdx}-${cIdx}" class="cipher-cell w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white hover:bg-emerald-200 border border-emerald-300 font-black text-xs text-slate-800 transition">
+                  ${letter}
+                </button>
+              `);
+            });
+          });
+          gridEl.innerHTML = cells.join('');
+        }
+
+        const listEl = $('misi3-container');
+        if (listEl) {
+          listEl.innerHTML = misi3Data
+            .map(
+              (q) => `
+              <div class="bg-emerald-50/70 border-2 border-emerald-200 rounded-2xl p-4 space-y-2.5">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <span class="text-[11px] font-extrabold bg-emerald-600 text-white px-2.5 py-0.5 rounded-full">Kasus #${q.id}</span>
+                  <button type="button" onclick="toggleMagnifier(${q.id})" class="text-[11px] font-extrabold bg-amber-200 hover:bg-amber-300 text-amber-950 px-2.5 py-1 rounded-lg">
+                    🔍 Kaca Pembesar Petunjuk
+                  </button>
+                </div>
+                <p class="text-xs sm:text-sm font-bold text-slate-800">${q.id}. ${q.clue}</p>
+                <p id="m3-clue-${q.id}" class="hidden text-xs font-bold text-amber-900 bg-amber-100 p-2.5 rounded-xl border border-amber-300">${q.magnifier}</p>
+                <div class="flex flex-col sm:flex-row gap-2">
+                  <input id="m3-input-${q.id}" type="text" placeholder="Ketik kata rahasia..." class="flex-1 rounded-xl border-2 border-emerald-300 focus:border-emerald-600 focus:outline-none px-3 py-2 text-xs sm:text-sm font-bold uppercase" />
+                  <button type="button" id="m3-btn-${q.id}" onclick="checkMisi3(${q.id})" class="btn-game bg-emerald-600 border-emerald-800 text-white text-xs font-extrabold px-4 py-2 rounded-xl">
+                    ✅ Jawab
+                  </button>
+                </div>
+                <p id="m3-fb-${q.id}" class="text-xs font-extrabold hidden"></p>
+              </div>
+            `
+            )
+            .join('');
+        }
+      }
+
+      window.toggleCipherCell = function (btn) {
+        SoundEngine.click();
+        btn.classList.toggle('bg-amber-300');
+        btn.classList.toggle('border-amber-600');
+        btn.classList.toggle('bg-white');
+      };
+
+      window.clearCipherHighlights = function () {
+        SoundEngine.click();
+        document.querySelectorAll('.cipher-cell').forEach((cell) => {
+          cell.classList.remove('bg-amber-300', 'border-amber-600');
+          cell.classList.add('bg-white');
+        });
+      };
+
+      window.toggleMagnifier = function (caseId) {
+        SoundEngine.click();
+        const el = $(`m3-clue-${caseId}`);
+        if (el) el.classList.toggle('hidden');
+      };
+
+      window.checkMisi3 = function (caseId) {
+        if (solvedCases.has(caseId)) return;
+        const item = misi3Data.find((x) => x.id === caseId);
+        const inp = $(`m3-input-${caseId}`);
+        const fb = $(`m3-fb-${caseId}`);
+        const btn = $(`m3-btn-${caseId}`);
+        if (!item || !inp) return;
+
+        const guess = inp.value.trim().toUpperCase();
+        if (guess === item.answer) {
+          inp.disabled = true;
+          if (btn) btn.disabled = true;
+          if (fb) {
+            fb.textContent = `✅ Hebat! Kata tersembunyinya adalah ${item.answer}!`;
+            fb.className = 'text-xs font-extrabold text-emerald-700';
+          }
+          markCaseSolved(caseId);
+        } else {
+          SoundEngine.wrong();
+          if (fb) {
+            fb.textContent = '❌ Kata belum cocok. Coba gunakan Kaca Pembesar Petunjuk atau lihat Papan Sandi 9×9!';
+            fb.className = 'text-xs font-extrabold text-rose-600';
+          }
+        }
+      };
+
+      // Misi 4: Susun Kalimat Ajaib (Kasus 10-12)
+      const misi4Data = [
+        {
+          id: 10,
+          words: ['sekolah', 'pergi', 'Adik', 'ke'],
+          answer: 'Adik pergi ke sekolah'
+        },
+        {
+          id: 11,
+          words: ['bunga', 'menyiram', 'Ani', 'setiap pagi'],
+          answer: 'Ani menyiram bunga setiap pagi'
+        },
+        {
+          id: 12,
+          words: ['bersama', 'bermain', 'teman-teman', 'Saya'],
+          answer: 'Saya bermain bersama teman-teman'
+        }
+      ];
+      const misi4Built = { 10: [], 11: [], 12: [] };
+
+      function initMisi4() {
+        const container = $('misi4-container');
+        if (!container) return;
+
+        container.innerHTML = misi4Data
+          .map(
+            (q) => `
+            <div class="bg-purple-50/70 border-2 border-purple-200 rounded-2xl p-4 flex flex-col justify-between space-y-3">
+              <div>
+                <span class="text-[11px] font-extrabold bg-purple-600 text-white px-2.5 py-0.5 rounded-full">Kasus #${q.id}</span>
+                <p class="text-xs font-bold text-slate-600 mt-1.5">Susun kartu kata berikut menjadi kalimat padu:</p>
+              </div>
+
+              <div id="m4-display-${q.id}" class="min-h-[46px] bg-white border-2 border-dashed border-purple-400 rounded-xl p-2.5 text-xs sm:text-sm font-extrabold text-purple-900 text-center flex items-center justify-center">
+                <span class="text-slate-400 font-semibold">Klik kartu kata di bawah...</span>
+              </div>
+
+              <div class="flex flex-wrap justify-center gap-1.5">
+                ${q.words
+                  .map(
+                    (w, idx) => `
+                    <button type="button" id="m4-chip-${q.id}-${idx}" onclick="pickMisi4Word(${q.id}, ${idx}, '${w}')" class="btn-game bg-purple-500 hover:bg-purple-400 border-purple-700 text-white text-xs font-extrabold px-3 py-1.5 rounded-xl">
+                      ${w}
+                    </button>
+                  `
+                  )
+                  .join('')}
+              </div>
+
+              <div class="flex items-center justify-between gap-2 pt-1">
+                <button type="button" onclick="resetMisi4(${q.id})" class="text-xs font-extrabold text-slate-600 hover:text-rose-600 bg-white border border-slate-300 px-3 py-1.5 rounded-xl">
+                  🔄 Ulangi
+                </button>
+                <button type="button" onclick="verifyMisi4(${q.id})" class="btn-game bg-emerald-500 border-emerald-700 text-white text-xs font-extrabold px-4 py-1.5 rounded-xl">
+                  ✅ Periksa
+                </button>
+              </div>
+              <p id="m4-fb-${q.id}" class="text-xs font-extrabold hidden"></p>
+            </div>
+          `
+          )
+          .join('');
+      }
+
+      window.pickMisi4Word = function (caseId, wordIdx, wordText) {
+        if (solvedCases.has(caseId)) return;
+        SoundEngine.click();
+        const chip = $(`m4-chip-${caseId}-${wordIdx}`);
+        if (chip) chip.classList.add('opacity-35', 'pointer-events-none');
+
+        misi4Built[caseId].push(wordText);
+        const disp = $(`m4-display-${caseId}`);
+        if (disp) disp.textContent = misi4Built[caseId].join(' ');
+      };
+
+      window.resetMisi4 = function (caseId) {
+        if (solvedCases.has(caseId)) return;
+        SoundEngine.click();
+        misi4Built[caseId] = [];
+        const item = misi4Data.find((x) => x.id === caseId);
+        if (item) {
+          item.words.forEach((_, idx) => {
+            const chip = $(`m4-chip-${caseId}-${idx}`);
+            if (chip) chip.classList.remove('opacity-35', 'pointer-events-none');
+          });
+        }
+        const disp = $(`m4-display-${caseId}`);
+        if (disp) disp.innerHTML = '<span class="text-slate-400 font-semibold">Klik kartu kata di bawah...</span>';
+        const fb = $(`m4-fb-${caseId}`);
+        if (fb) fb.classList.add('hidden');
+      };
+
+      window.verifyMisi4 = function (caseId) {
+        if (solvedCases.has(caseId)) return;
+        const item = misi4Data.find((x) => x.id === caseId);
+        if (!item) return;
+
+        const sentence = misi4Built[caseId].join(' ');
+        const fb = $(`m4-fb-${caseId}`);
+
+        if (sentence === item.answer) {
+          if (fb) {
+            fb.textContent = `✅ Benar! "${item.answer}."`;
+            fb.className = 'text-xs font-extrabold text-emerald-700';
+          }
+          markCaseSolved(caseId);
+        } else {
+          SoundEngine.wrong();
+          if (fb) {
+            fb.textContent = '❌ Urutan kalimat belum tepat. Ingat kalimat diawali huruf kapital (Subjek)!';
+            fb.className = 'text-xs font-extrabold text-rose-600';
+          }
+        }
+      };
+
+      // =====================================================================
+      // 9. INISIALISASI SAAT DOM SIAP
+      // =====================================================================
+      document.addEventListener('DOMContentLoaded', function () {
+        const authorInput = $('story-author-input');
+        if (authorInput) {
+          authorInput.addEventListener('input', function () {
+            authorInput.dataset.autoSync = 'false';
+          });
+        }
+
+        currentWebList = getShuffledWebList();
+        renderWebSorter();
+        renderPantunRiddle();
+        initMisi1();
+        initMisi2();
+        initMisi3();
+        initMisi4();
+        refreshHeaderUI();
+      });
+    })();
+  </script>
+</body>
+</html>
